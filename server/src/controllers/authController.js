@@ -69,3 +69,8 @@ export const login = asyncHandler(async (req, res) => {
     user: userResponse(user),
   });
 });
+
+// Current user
+export const getMe = (req, res) => {
+  res.json({ success: true, user: userResponse(req.user) });
+};
