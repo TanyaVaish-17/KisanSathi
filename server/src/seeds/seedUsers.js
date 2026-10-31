@@ -6,6 +6,8 @@ import User from "../models/User.js";
 const users = [
   { name: "KisanSathi Admin", email: "admin@kisansathi.in", password: "admin123", role: "admin" },
   { name: "Mandi Operator", email: "operator@kisansathi.in", password: "operator123", role: "operator" },
+  { name: "Operator Two", email: "operator2@kisansathi.in", password: "operator123", role: "operator" },
+  { name: "Operator Three", email: "operator3@kisansathi.in", password: "operator123", role: "operator" },
 ];
 
 const seed = async () => {
