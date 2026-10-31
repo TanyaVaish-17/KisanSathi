@@ -5,6 +5,7 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
+import centerRoutes from "./routes/centerRoutes.js";
 
 const app = express();
 
@@ -24,6 +25,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes); 
+
+app.use("/api/centers", centerRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
