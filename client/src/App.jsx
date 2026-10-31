@@ -7,6 +7,8 @@ import OperatorDashboard from "./pages/OperatorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardRedirect from "./components/DashboardRedirect";
+import Centers from "./pages/Centers";
+import CenterDetails from "./pages/CenterDetails";
 
 export default function App() {
   return (
@@ -14,7 +16,8 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-
+      <Route path="/centers" element={<Centers />} />
+      <Route path="/centers/:id" element={<CenterDetails />} />
       <Route
         path="/dashboard"
         element={

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:users": "node src/seeds/seedUsers.js"
+    "seed:users": "node src/seeds/seedUsers.js",
+    "seed:demo": "node src/seeds/seedDemo.js",
+    "seed": "npm run seed:users && npm run seed:demo"
   },
   "keywords": [],
   "author": "",
