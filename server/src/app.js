@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
 import centerRoutes from "./routes/centerRoutes.js";
+import serviceRoutes from "./routes/serviceRoutes.js";
 
 const app = express();
 
@@ -25,9 +26,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes); 
-
 app.use("/api/centers", centerRoutes);
-
+app.use("/api/services", serviceRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
