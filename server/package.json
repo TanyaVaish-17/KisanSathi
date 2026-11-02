@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "seed:users": "node src/seeds/seedUsers.js",
     "seed:demo": "node src/seeds/seedDemo.js",
-    "seed": "npm run seed:users && npm run seed:demo"
+    "seed": "npm run seed:users && npm run seed:demo",
+    "check:queue": "node src/scripts/checkQueue.js"
   },
   "keywords": [],
   "author": "",
