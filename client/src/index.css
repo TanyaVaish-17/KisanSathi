@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
-body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+@theme {
+  --color-forest-950: #032304;
+  --color-forest-800: #095f0a;
+  --color-forest-600: #0e8f10;
+  --color-forest-500: #12be15;
+  --color-lime-brand: #17ee1a;
+  --color-lime-300: #8bf78d;
+  --color-mint-200: #c5fbc6;
+  --color-mint-100: #cbfbcc;
+  --color-ink: #131413;
+  --color-slate-text: #4a4e49;
+  --color-slate-muted: #6e746d;
+  --color-line-strong: #b8c2b6;
+  --color-line-soft: #d4dad3;
+  --color-line-divider: #e3e7e2;
+  --color-divider: #e3e7e2;
+  --color-surface: #f8f9f8;
+  --color-surface-2: #f7f8f6;
+  --color-warn: #fe7e3b;
+  --color-danger: #c0392b;
+  --color-danger-soft: #fdd4d9;
+
+  --font-sans: "Host Grotesk", "Noto Sans Devanagari", system-ui, sans-serif;
+  --font-mono: "Azeret Mono", ui-monospace, monospace;
+
+  --radius-btn: 4px;
+  --radius-chip: 2px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+}
+
+:root {
+  font-family: "Host Grotesk", "Noto Sans Devanagari", system-ui, sans-serif;
+  color: #4a4e49;
+  background-color: #ffffff;
+}
+
+/* Global button focus styles as per Keyvo design spec */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #032304;
+  outline-offset: 2px;
 }
