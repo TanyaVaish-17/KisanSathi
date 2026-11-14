@@ -50,7 +50,7 @@ export default function AdminOperators() {
 
   const openAssignModal = (op) => {
     setSelectedOperator(op);
-    setTargetCounterId(op.counter?._id || op.counter || "");
+    setTargetCounterId(op.assignedCounter?.id || "");
     setAssignError(null);
     setAssignModalOpen(true);
   };
@@ -143,17 +143,17 @@ export default function AdminOperators() {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          {op.counter ? (
+                          {op.assignedCounter ? (
                             <span className="inline-flex items-center gap-1.5 font-semibold text-forest-950">
                               <Layers className="h-4 w-4 text-forest-600" />
-                              <span>{op.counter.name || "Counter"}</span>
+                              <span>{op.assignedCounter.name || "Counter"}</span>
                             </span>
                           ) : (
                             <Chip variant="orange">UNASSIGNED</Chip>
                           )}
                         </td>
                         <td className="px-6 py-4 text-slate-text">
-                          {op.counter?.center?.name || "—"}
+                          {op.assignedCounter?.center?.name || "—"}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button

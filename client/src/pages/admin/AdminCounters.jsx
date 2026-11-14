@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import Chip from "../../components/common/Chip";
 import CounterStatusPill from "../../components/common/CounterStatusPill";
@@ -39,18 +39,22 @@ export default function AdminCounters() {
   const [operatorId, setOperatorId] = useState("");
   const [status, setStatus] = useState("active");
 
+  const fetchOperators = useCallback(
+    () => api.get("/counters/operators").then((res) => setOperators(res.data.operators || [])),
+    []
+  );
+
   // Load initial dropdowns
   useEffect(() => {
     Promise.all([
       api.get("/centers/admin/all"),
-      api.get("/counters/operators"),
+      fetchOperators(),
     ])
-      .then(([cRes, oRes]) => {
+      .then(([cRes]) => {
         setCenters(cRes.data.centers || []);
-        setOperators(oRes.data.operators || []);
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [fetchOperators]);
 
   // When centerId changes in create modal, fetch services for that center
   useEffect(() => {
@@ -135,8 +139,8 @@ export default function AdminCounters() {
       name: name.trim(),
       service: serviceId,
       status,
+      operator: operatorId || null,
     };
-    if (operatorId) payload.operator = operatorId;
     if (!editingCounter) payload.center = centerId;
 
     try {
@@ -147,6 +151,11 @@ export default function AdminCounters() {
       }
       setModalOpen(false);
       fetchCounters();
+      fetchOperators().catch((err) => {
+        setError(
+          err.response?.data?.message || "Counter saved, but the operator list could not be refreshed"
+        );
+      });
     } catch (err) {
       setFormError(err.response?.data?.message || "Counter operation failed");
     } finally {
@@ -411,11 +420,23 @@ export default function AdminCounters() {
                   className="mt-1 h-10 w-full rounded-btn border border-line-soft px-3 text-sm text-forest-950"
                 >
                   <option value="">None (Unassigned)</option>
-                  {operators.map((op) => (
-                    <option key={op._id || op.id} value={op._id || op.id}>
-                      {op.name} ({op.phone || op.email})
-                    </option>
-                  ))}
+                  {operators.map((op) => {
+                    const assignedToAnotherCounter =
+                      op.assignedCounter &&
+                      String(op.assignedCounter.id) !== String(editingCounter?._id);
+                    return (
+                      <option
+                        key={op._id || op.id}
+                        value={op._id || op.id}
+                        disabled={Boolean(assignedToAnotherCounter)}
+                      >
+                        {op.name} ({op.phone || op.email})
+                        {assignedToAnotherCounter
+                          ? ` (assigned to ${op.assignedCounter.name})`
+                          : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

@@ -67,11 +67,16 @@ export const getOperators = asyncHandler(async (req, res) => {
     .select("name email phone")
     .sort("name");
 
-  const assigned = await Counter.find({ operator: { $in: operators.map((o) => o._id) } }).select(
-    "name operator"
-  );
+  const assigned = await Counter.find({ operator: { $in: operators.map((o) => o._id) } })
+    .select("name operator center")
+    .populate("center", "name");
 
-  const assignedMap = new Map(assigned.map((c) => [String(c.operator), { id: c._id, name: c.name }]));
+  const assignedMap = new Map(
+    assigned.map((c) => [
+      String(c.operator),
+      { id: c._id, name: c.name, center: c.center },
+    ])
+  );
 
   res.json({
     success: true,
