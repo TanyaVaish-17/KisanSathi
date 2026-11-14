@@ -1,0 +1,458 @@
+/* Adapted from "Card" by seoulchik (Uiverse.io), recolored for Kisan Sarthi. */
+
+.token-card {
+  /* Theme colors */
+  --primary: #032304;            /* forest-950 */
+  --secondary: #095f0a;          /* forest-800 */
+  --secondary-hover: #0e8f10;    /* green-600 */
+  --accent: #c5fbc6;             /* mint-200, overridden per status */
+  --tag-bg: #ffffff;
+  --text: #032304;
+  --muted: #4a4e49;              /* slate-text */
+  --bg: #ffffff;
+  --shadow-color: #032304;
+  --pattern-color: #d4dad3;      /* line-soft */
+  --button-bg: #032304;
+  --button-bg-hover: #095f0a;
+  --button-text: #8bf78d;        /* lime-300 */
+
+  position: relative;
+  width: min(22em, 100%);
+  font-size: 16px;               /* set a larger value to scale the whole card */
+  font-family: "Host Grotesk", "Noto Sans Devanagari", system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  border: 0.35em solid var(--text);
+  border-radius: 0.6em;
+  box-shadow: 0.7em 0.7em 0 var(--shadow-color);
+  overflow: hidden;
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Status colors */
+.token-card[data-status="waiting"]   { --accent: #c5fbc6; }
+.token-card[data-status="serving"]   { --accent: #17ee1a; --tag-bg: #17ee1a; }
+.token-card[data-status="delayed"]   { --accent: #fe7e3b; --tag-bg: #fe7e3b; }
+.token-card[data-status="completed"] { --accent: #12be15; --tag-bg: #c5fbc6; }
+.token-card[data-status="cancelled"],
+.token-card[data-status="skipped"],
+.token-card[data-status="no_show"]   { --accent: #fdd4d9; --tag-bg: #fdd4d9; }
+
+.token-card:active {
+  transform: translate(0.1em, 0.1em);
+  box-shadow: 0.5em 0.5em 0 var(--shadow-color);
+}
+
+/* Corner triangle and star */
+.token-card::before {
+  content: "";
+  position: absolute;
+  top: -1em;
+  right: -1em;
+  width: 4em;
+  height: 4em;
+  background: var(--accent);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+
+.token-card::after {
+  content: "★";
+  position: absolute;
+  top: 0.4em;
+  right: 0.4em;
+  color: var(--text);
+  font-size: 1.2em;
+  font-weight: 700;
+  z-index: 2;
+}
+
+/* Background patterns */
+.token-card__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(3, 35, 4, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(3, 35, 4, 0.06) 1px, transparent 1px);
+  background-size: 0.5em 0.5em;
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.token-card__dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--pattern-color) 1px, transparent 1px);
+  background-size: 1em 1em;
+  background-position: -0.5em -0.5em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.token-card__bold-pattern {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6em;
+  height: 6em;
+  color: var(--text);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Title bar */
+.token-card__title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  padding: 1.4em 2.4em 1.4em 1.4em;
+  background: var(--primary);
+  color: var(--bg);
+  font-size: 1.2em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 0.35em solid var(--text);
+  overflow: hidden;
+  z-index: 2;
+}
+
+.token-card__title::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(197, 251, 198, 0.08),
+    rgba(197, 251, 198, 0.08) 0.5em,
+    transparent 0.5em,
+    transparent 1em
+  );
+  pointer-events: none;
+}
+
+.token-card__title-text {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.token-card__tag {
+  position: relative;
+  flex: none;
+  background: var(--tag-bg);
+  color: var(--tag-text, #032304);
+  font-size: 0.6em;
+  font-weight: 700;
+  padding: 0.4em 0.8em;
+  border: 0.15em solid var(--text);
+  border-radius: 0.3em;
+  box-shadow: 0.2em 0.2em 0 var(--shadow-color);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotate(3deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Body */
+.token-card__body {
+  position: relative;
+  padding: 1.5em;
+  z-index: 2;
+}
+
+.token-card__desc {
+  margin: 0 0 1.2em;
+  font-size: 0.95em;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.token-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+  margin-bottom: 1.2em;
+}
+
+.token-card__stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  min-width: 0;
+  transition: transform 0.2s ease;
+}
+
+.token-card__stat-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9em;
+  height: 1.9em;
+  background: var(--secondary);
+  color: #ffffff;
+  border: 0.12em solid var(--text);
+  border-radius: 0.3em;
+  box-shadow: 0.2em 0.2em 0 rgba(3, 35, 4, 0.2);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.token-card__stat-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.token-card__stat-label {
+  font-family: "Azeret Mono", ui-monospace, monospace;
+  font-size: 0.6em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.token-card__stat-value {
+  font-size: 0.95em;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+/* Arrival advice */
+.token-card__arrival {
+  margin: 0 0 1.2em;
+  padding: 0.6em 0.8em;
+  background: #c5fbc6;               /* mint-200 */
+  border: 0.12em solid var(--text);
+  border-radius: 0.3em;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #032304;
+}
+
+/* Actions: ticket tear line, token code, button */
+.token-card__actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8em;
+  margin-top: 1.5em;
+  padding-top: 1.2em;
+  border-top: 0.15em dashed rgba(3, 35, 4, 0.2);
+}
+
+.token-card__actions::before {
+  content: "✂";
+  position: absolute;
+  top: -0.8em;
+  left: 50%;
+  transform: translateX(-50%) rotate(90deg);
+  background: var(--bg);
+  padding: 0 0.5em;
+  color: rgba(3, 35, 4, 0.4);
+}
+
+.token-card__code {
+  position: relative;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1.1;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.token-card__code::before {
+  content: "";
+  position: absolute;
+  bottom: 0.15em;
+  left: 0;
+  width: 100%;
+  height: 0.2em;
+  background: var(--accent);
+  z-index: -1;
+}
+
+.token-card__code-prefix {
+  font-size: 0.6em;
+  font-weight: 700;
+  vertical-align: top;
+  margin-right: 0.1em;
+}
+
+.token-card__code-label {
+  display: block;
+  margin-top: 0.2em;
+  font-size: 0.4em;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.token-card__button {
+  position: relative;
+  flex: none;
+  min-height: 2.75em;
+  padding: 0.7em 1.2em;
+  background: var(--button-bg);
+  color: var(--button-text);
+  font: inherit;
+  font-size: 0.9em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 0.2em solid var(--text);
+  border-radius: 0.4em;
+  box-shadow: 0.3em 0.3em 0 var(--shadow-color);
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.token-card__button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  transition: left 0.6s ease;
+}
+
+.token-card__button:active {
+  transform: translate(0.1em, 0.1em);
+  box-shadow: 0.15em 0.15em 0 var(--shadow-color);
+}
+
+.token-card__button:focus-visible {
+  outline: 0.15em solid var(--text);
+  outline-offset: 0.2em;
+}
+
+/* Decoration */
+.token-card__dots-pattern {
+  position: absolute;
+  bottom: 2em;
+  left: -2em;
+  width: 8em;
+  height: 4em;
+  color: var(--text);
+  opacity: 0.3;
+  transform: rotate(-10deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.token-card__accent-shape {
+  position: absolute;
+  bottom: -1.2em;
+  right: 2em;
+  width: 2.5em;
+  height: 2.5em;
+  background: var(--secondary);
+  border: 0.15em solid var(--text);
+  border-radius: 0.3em;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.token-card__corner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 1.5em;
+  height: 1.5em;
+  background: var(--bg);
+  border-top: 0.25em solid var(--text);
+  border-right: 0.25em solid var(--text);
+  border-radius: 0 0.5em 0 0;
+  z-index: 1;
+}
+
+.token-card__stamp {
+  position: absolute;
+  bottom: 1.5em;
+  left: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4em;
+  height: 4em;
+  border: 0.15em solid rgba(3, 35, 4, 0.3);
+  border-radius: 50%;
+  transform: rotate(-15deg);
+  opacity: 0.2;
+  z-index: 1;
+}
+
+.token-card__stamp-text {
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text);
+}
+
+/* Hover effects only on devices that really hover */
+@media (hover: hover) and (pointer: fine) {
+  .token-card:hover {
+    transform: translate(-0.4em, -0.4em) scale(1.02);
+    box-shadow: 1em 1em 0 var(--shadow-color);
+  }
+  .token-card:hover .token-card__grid,
+  .token-card:hover .token-card__dots { opacity: 1; }
+  .token-card:hover .token-card__tag {
+    transform: rotate(-2deg) scale(1.1);
+    box-shadow: 0.25em 0.25em 0 var(--shadow-color);
+  }
+  .token-card:hover .token-card__accent-shape { transform: rotate(55deg) scale(1.1); }
+  .token-card__stat:hover { transform: translateX(0.3em); }
+  .token-card__stat:hover .token-card__stat-icon {
+    background: var(--secondary-hover);
+    transform: rotate(-5deg);
+  }
+  .token-card__button:hover {
+    background: var(--button-bg-hover);
+    transform: translate(-0.1em, -0.1em);
+    box-shadow: 0.4em 0.4em 0 var(--shadow-color);
+  }
+  .token-card__button:hover::before { left: 100%; }
+}
+
+/* Hindi: no uppercase, no letter spacing */
+.token-card:lang(hi),
+.token-card:lang(hi) * {
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .token-card,
+  .token-card * {
+    transition: none !important;
+    animation: none !important;
+  }
+  .token-card:hover,
+  .token-card:active { transform: none; }
+}
