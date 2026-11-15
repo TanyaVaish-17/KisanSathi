@@ -11,6 +11,7 @@ import {
   pickCounter,
   recalculateCounterQueue,
   suggestArrival,
+  MAX_SKIPS,
 } from "../services/queueService.js";
 
 const POPULATE = [
@@ -112,16 +113,23 @@ export const createToken = asyncHandler(async (req, res) => {
 
 export const getMyTokens = asyncHandler(async (req, res) => {
   await expireStaleTokens({ farmerId: req.user._id });
+
   const active = await Token.findOne({ farmer: req.user._id, isActive: true }).populate(POPULATE);
   const history = await Token.find({ farmer: req.user._id, isActive: false })
     .sort("-createdAt")
     .limit(50)
     .populate(POPULATE);
 
+  const today = getDateKey();
+
   res.json({
     success: true,
     active: active ? await describeToken(active) : null,
-    history,
+    history: history.map((token) => ({
+      ...token.toObject(),
+      canRejoin:
+        token.status === "skipped" && token.dateKey === today && token.skipCount < MAX_SKIPS,
+    })),
   });
 });
 
@@ -176,4 +184,69 @@ export const cancelToken = asyncHandler(async (req, res) => {
 
   await token.populate(POPULATE);
   res.json({ success: true, token: await describeToken(token) });
+});
+
+export const rejoinToken = asyncHandler(async (req, res) => {
+  const token = await Token.findById(req.params.id);
+  if (!token || String(token.farmer) !== String(req.user._id)) {
+    res.status(404);
+    throw new Error("Token not found");
+  }
+
+  if (token.status !== "skipped") {
+    res.status(400);
+    throw new Error("Only a skipped token can rejoin the queue");
+  }
+
+  if (token.dateKey !== getDateKey()) {
+    res.status(400);
+    throw new Error("This token is from an earlier day. Please book a new token");
+  }
+
+  if (token.skipCount >= MAX_SKIPS) {
+    res.status(400);
+    throw new Error("This token was skipped too many times to rejoin. Please book a new token");
+  }
+
+  const existing = await Token.findOne({ farmer: req.user._id, isActive: true });
+  if (existing) {
+    res.status(409);
+    throw new Error(`You already have an active token (${existing.tokenCode})`);
+  }
+
+  const counter = await pickCounter(token.center, token.service, token.dateKey);
+  if (!counter) {
+    res.status(409);
+    throw new Error("No counter is running for this service right now");
+  }
+
+  let rejoined;
+  try {
+    rejoined = await Token.findOneAndUpdate(
+      { _id: token._id, status: "skipped", dateKey: getDateKey(), skipCount: { $lt: MAX_SKIPS } },
+      {
+        $set: { status: "waiting", isActive: true, counter: counter._id, queuedAt: new Date() },
+        $unset: { skippedAt: "" },
+      },
+      { new: true }
+    );
+  } catch (err) {
+    if (err.code === 11000 && err.keyPattern?.farmer) {
+      res.status(409);
+      throw new Error("You already have an active token");
+    }
+    throw err;
+  }
+
+  if (!rejoined) {
+    res.status(409);
+    throw new Error("This token can no longer rejoin the queue");
+  }
+
+  const info = await getTokenQueueInfo(rejoined);
+  rejoined.estimatedWaitMinutes = info.estimatedWaitMinutes;
+  await rejoined.save();
+  await rejoined.populate(POPULATE);
+
+  res.json({ success: true, token: await describeToken(rejoined) });
 });

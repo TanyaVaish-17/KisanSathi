@@ -5,6 +5,7 @@ import {
   getMyTokens,
   getTokenById,
   cancelToken,
+  rejoinToken,
 } from "../controllers/tokenController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
@@ -26,5 +27,6 @@ router.post("/", protect, authorize("farmer"), createRules, validate, createToke
 router.get("/mine", protect, authorize("farmer"), getMyTokens);
 router.get("/:id", protect, idRule, validate, getTokenById);
 router.patch("/:id/cancel", protect, authorize("farmer"), idRule, cancelRules, validate, cancelToken);
+router.patch("/:id/rejoin", protect, authorize("farmer"), idRule, validate, rejoinToken);
 
 export default router;
