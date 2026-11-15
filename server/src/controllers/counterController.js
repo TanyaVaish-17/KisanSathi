@@ -4,6 +4,7 @@ import ServiceCenter from "../models/ServiceCenter.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import pick from "../utils/pick.js";
+import { transferWaitingTokens } from "../services/queueService.js";
 
 const FIELDS = ["name", "service", "operator"];
 
@@ -163,9 +164,12 @@ export const updateCounterStatus = asyncHandler(async (req, res) => {
 
   counter.status = status;
   await counter.save();
+
+  const transfer = status === "inactive" ? await transferWaitingTokens(counter._id) : null;
+
   await counter.populate(POPULATE);
 
-  res.json({ success: true, counter });
+  res.json({ success: true, counter, ...(transfer && { transfer }) });
 });
 
 // Admin: delete counter

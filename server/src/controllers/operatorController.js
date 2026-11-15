@@ -9,6 +9,7 @@ import {
   pickCounter,
   recalculateCounterQueue,
   releaseStaleCounterToken,
+  transferWaitingTokens,
   MAX_SKIPS,
 } from "../services/queueService.js";
 import { nextTokenNumber, buildTokenCode } from "../services/tokenService.js";
@@ -238,5 +239,26 @@ export const registerWalkIn = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     token: { ...formatToken(token), counterName: counter.name, queue },
+  });
+});
+
+export const transferWaiting = asyncHandler(async (req, res) => {
+  const counter = await findOwnCounter(req, res);
+
+  if (counter.status === "active") {
+    res.status(409);
+    throw new Error("Pause your counter before transferring its waiting tokens");
+  }
+
+  const { moved, remaining } = await transferWaitingTokens(counter._id);
+
+  res.json({
+    success: true,
+    moved,
+    remaining,
+    message:
+      moved === 0 && remaining > 0
+        ? "No other active counter is available for this service. Waiting farmers stay in your queue until you resume"
+        : `${moved} token${moved === 1 ? "" : "s"} moved to another counter`,
   });
 });

@@ -5,6 +5,7 @@ import {
   callNext,
   updateTokenStatus,
   registerWalkIn,
+  transferWaiting,
 } from "../controllers/operatorController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
@@ -36,6 +37,7 @@ router.use(protect, authorize("operator"));
 router.get("/queue", getQueue);
 router.post("/call-next", callNext);
 router.post("/walk-ins", walkInRules, validate, registerWalkIn);
+router.post("/transfer-waiting", transferWaiting);
 router.patch("/tokens/:id/status", idRule, statusRules, validate, updateTokenStatus);
 
 export default router;

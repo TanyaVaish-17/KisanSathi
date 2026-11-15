@@ -191,3 +191,42 @@ export const releaseStaleCounterToken = async (counterId) => {
     { $set: { currentToken: null } }
   );
 };
+
+export const transferWaitingTokens = async (counterId, dateKey = getDateKey()) => {
+  const source = await Counter.findById(counterId);
+  if (!source || source.status === "active") return { moved: 0, remaining: 0 };
+
+  const waiting = await Token.find({
+    counter: source._id,
+    dateKey,
+    status: "waiting",
+  }).sort({ queuedAt: 1, tokenNumber: 1 });
+
+  const touched = new Set();
+  let moved = 0;
+
+  for (const token of waiting) {
+    const target = await pickCounter(source.center, source.service, dateKey);
+    if (!target) break;
+
+    const result = await Token.updateOne(
+      { _id: token._id, counter: source._id, status: "waiting" },
+      { $set: { counter: target._id } }
+    );
+
+    if (result.modifiedCount) {
+      moved += 1;
+      touched.add(String(target._id));
+    }
+  }
+
+  await Promise.all([source._id, ...touched].map((id) => recalculateCounterQueue(id, dateKey)));
+
+  const remaining = await Token.countDocuments({
+    counter: source._id,
+    dateKey,
+    status: "waiting",
+  });
+
+  return { moved, remaining };
+};
