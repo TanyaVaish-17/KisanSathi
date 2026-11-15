@@ -337,7 +337,7 @@ export const updateCounterStatus = asyncHandler(async (req, res) => {
   await recalculateCounterQueue(counter._id);
   await counter.populate(POPULATE);
 
-  res.json({ success: true, counter });
+  res.json({ success: true, counter, ...(transfer && { transfer }) });
 });
 
 // Admin: delete counter

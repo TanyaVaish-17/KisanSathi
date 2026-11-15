@@ -5,6 +5,7 @@ import { calculateQueueETA } from "./etaService.js";
 import "../models/Service.js";
 
 export const ARRIVAL_BUFFER_MINUTES = 15;
+export const MAX_SKIPS = 2;
 
 export const getCounterQueue = async (counterId, dateKey = getDateKey()) => {
   const tokens = await Token.find({
@@ -167,4 +168,99 @@ export const suggestArrival = (waitMinutes, now = new Date()) => {
     arriveAt: arriveAt.toISOString(),
     message: `You can reach the center in about ${arriveInMinutes} minutes.`,
   };
+};
+
+const EXPIRABLE_STATUSES = ["waiting", "serving"];
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export const expireStaleTokens = async ({ counterId, farmerId, dateKey = getDateKey() } = {}) => {
+  if (!DATE_KEY_PATTERN.test(dateKey)) throw new Error("Invalid date key");
+
+  const base = { dateKey: { $lt: dateKey } };
+  if (counterId) base.counter = counterId;
+  if (farmerId) base.farmer = farmerId;
+
+  const candidates = (
+    await Token.find({ ...base, status: { $in: EXPIRABLE_STATUSES } }).select("_id")
+  ).map((token) => token._id);
+
+  if (candidates.length === 0) return 0;
+
+  let expired = 0;
+  for (const from of EXPIRABLE_STATUSES) {
+    const result = await Token.updateMany(
+      { ...base, _id: { $in: candidates }, status: from },
+      {
+        $set: {
+          status: "expired",
+          expiredFromStatus: from,
+          isActive: false,
+          expiredAt: new Date(),
+        },
+      }
+    );
+    expired += result.modifiedCount;
+  }
+
+  const stillServing = await Token.find({ _id: { $in: candidates }, status: "serving" }).select("_id");
+  const blocked = new Set(stillServing.map((token) => String(token._id)));
+  const releasable = candidates.filter((id) => !blocked.has(String(id)));
+
+  await Counter.updateMany({ currentToken: { $in: releasable } }, { $set: { currentToken: null } });
+
+  return expired;
+};
+
+export const releaseStaleCounterToken = async (counterId) => {
+  await expireStaleTokens({ counterId });
+
+  const counter = await Counter.findById(counterId).select("currentToken");
+  if (!counter?.currentToken) return;
+
+  const token = await Token.findById(counter.currentToken).select("status");
+  if (token && token.status === "serving") return;
+
+  await Counter.updateOne(
+    { _id: counterId, currentToken: counter.currentToken },
+    { $set: { currentToken: null } }
+  );
+};
+
+export const transferWaitingTokens = async (counterId, dateKey = getDateKey()) => {
+  const source = await Counter.findById(counterId);
+  if (!source || source.status === "active") return { moved: 0, remaining: 0 };
+
+  const waiting = await Token.find({
+    counter: source._id,
+    dateKey,
+    status: "waiting",
+  }).sort({ queuedAt: 1, tokenNumber: 1 });
+
+  const touched = new Set();
+  let moved = 0;
+
+  for (const token of waiting) {
+    const target = await pickCounter(source.center, source.service, dateKey);
+    if (!target) break;
+
+    const result = await Token.updateOne(
+      { _id: token._id, counter: source._id, status: "waiting" },
+      { $set: { counter: target._id } }
+    );
+
+    if (result.modifiedCount) {
+      moved += 1;
+      touched.add(String(target._id));
+    }
+  }
+
+  await Promise.all([source._id, ...touched].map((id) => recalculateCounterQueue(id, dateKey)));
+
+  const remaining = await Token.countDocuments({
+    counter: source._id,
+    dateKey,
+    status: "waiting",
+  });
+
+  return { moved, remaining };
 };

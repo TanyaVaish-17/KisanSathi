@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 import {
   getCenters,
   getCenterById,
@@ -7,6 +7,7 @@ import {
   createCenter,
   updateCenter,
   deleteCenter,
+  compareCenters,
 } from "../controllers/centerController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
@@ -31,7 +32,13 @@ const updateRules = [
   body("status").optional().isIn(["active", "inactive"]).withMessage("Invalid status"),
 ];
 
+const compareRules = [
+  query("service").optional().trim().isLength({ max: 100 }).withMessage("Service name is too long"),
+  query("district").optional().trim().isLength({ max: 100 }).withMessage("District name is too long"),
+];
+
 router.get("/", getCenters);
+router.get("/compare", compareRules, validate, compareCenters);
 router.get("/admin/all", protect, authorize("admin"), getAllCenters);
 router.get("/:id", idRule, validate, getCenterById);
 

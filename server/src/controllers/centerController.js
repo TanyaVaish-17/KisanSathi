@@ -3,6 +3,7 @@ import Service from "../models/Service.js";
 import Counter from "../models/Counter.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import pick from "../utils/pick.js";
+import { getCenterComparison } from "../services/recommendationService.js";
 
 const CENTER_FIELDS = [
   "name",
@@ -93,4 +94,13 @@ export const deleteCenter = asyncHandler(async (req, res) => {
 
   await center.deleteOne();
   res.json({ success: true, message: "Center deleted" });
+});
+
+export const compareCenters = asyncHandler(async (req, res) => {
+  const result = await getCenterComparison({
+    serviceName: req.query.service,
+    district: req.query.district,
+  });
+
+  res.json({ success: true, ...result });
 });
