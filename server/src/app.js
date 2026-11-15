@@ -9,6 +9,7 @@ import centerRoutes from "./routes/centerRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import counterRoutes from "./routes/counterRoutes.js";
 import tokenRoutes from "./routes/tokenRoutes.js";
+import operatorRoutes from "./routes/operatorRoutes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/centers", centerRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/counters", counterRoutes);
 app.use("/api/tokens", tokenRoutes);
+app.use("/api/operator", operatorRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

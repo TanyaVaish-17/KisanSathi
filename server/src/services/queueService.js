@@ -4,6 +4,7 @@ import { getDateKey } from "../utils/dateKey.js";
 import "../models/Service.js";
 
 export const ARRIVAL_BUFFER_MINUTES = 15;
+export const MAX_SKIPS = 2;
 
 const remainingServingMinutes = (servingToken, duration) => {
   if (!servingToken) return 0;
