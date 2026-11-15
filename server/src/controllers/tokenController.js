@@ -1,11 +1,12 @@
 import Token from "../models/Token.js";
-import TokenSequence from "../models/TokenSequence.js";
 import ServiceCenter from "../models/ServiceCenter.js";
 import Service from "../models/Service.js";
 import Counter from "../models/Counter.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { nextTokenNumber, buildTokenCode } from "../services/tokenService.js";
 import { getDateKey, getIstClock } from "../utils/dateKey.js";
 import {
+  expireStaleTokens,
   getTokenQueueInfo,
   pickCounter,
   recalculateCounterQueue,
@@ -22,14 +23,6 @@ const toMinutes = (time) => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 };
-
-const serviceInitials = (name) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word[0].toUpperCase())
-    .join("")
-    .slice(0, 3);
 
 const describeToken = async (token) => {
   const queue = await getTokenQueueInfo({
@@ -71,6 +64,8 @@ export const createToken = asyncHandler(async (req, res) => {
     }
   }
 
+  await expireStaleTokens({ farmerId: req.user._id });
+
   const existing = await Token.findOne({ farmer: req.user._id, isActive: true });
   if (existing) {
     res.status(409);
@@ -84,17 +79,13 @@ export const createToken = asyncHandler(async (req, res) => {
   }
 
   const dateKey = getDateKey();
-  const sequence = await TokenSequence.findOneAndUpdate(
-    { center: center._id, dateKey },
-    { $inc: { seq: 1 } },
-    { upsert: true, new: true }
-  );
+  const tokenNumber = await nextTokenNumber(center._id, dateKey);
 
   let token;
   try {
     token = await Token.create({
-      tokenNumber: sequence.seq,
-      tokenCode: `${serviceInitials(service.name)}-${String(sequence.seq).padStart(3, "0")}`,
+      tokenNumber,
+      tokenCode: buildTokenCode(service.name, tokenNumber),
       dateKey,
       center: center._id,
       service: service._id,
@@ -120,6 +111,7 @@ export const createToken = asyncHandler(async (req, res) => {
 });
 
 export const getMyTokens = asyncHandler(async (req, res) => {
+  await expireStaleTokens({ farmerId: req.user._id });
   const active = await Token.findOne({ farmer: req.user._id, isActive: true }).populate(POPULATE);
   const history = await Token.find({ farmer: req.user._id, isActive: false })
     .sort("-createdAt")

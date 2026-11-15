@@ -1,12 +1,17 @@
 import Counter from "../models/Counter.js";
+import Service from "../models/Service.js";
 import Token from "../models/Token.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { getDateKey } from "../utils/dateKey.js";
 import {
   calculateQueueState,
+  getTokenQueueInfo,
+  pickCounter,
   recalculateCounterQueue,
+  releaseStaleCounterToken,
   MAX_SKIPS,
 } from "../services/queueService.js";
+import { nextTokenNumber, buildTokenCode } from "../services/tokenService.js";
 
 const COUNTER_POPULATE = [
   { path: "center", select: "name district" },
@@ -99,7 +104,10 @@ export const callNext = asyncHandler(async (req, res) => {
     );
   }
 
-  if (counter.currentToken) {
+  await releaseStaleCounterToken(counter._id);
+
+  const current = await Counter.findById(counter._id).select("currentToken");
+  if (current?.currentToken) {
     res.status(409);
     throw new Error("Finish the current token before calling the next one");
   }
@@ -185,5 +193,50 @@ export const updateTokenStatus = asyncHandler(async (req, res) => {
       ...formatToken(updated),
       canRejoin: status === "skipped" && Boolean(updated.farmer) && updated.skipCount < MAX_SKIPS,
     },
+  });
+});
+
+export const registerWalkIn = asyncHandler(async (req, res) => {
+  const ownCounter = await findOwnCounter(req, res);
+
+  const service = await Service.findById(req.body.service || ownCounter.service);
+  if (!service || !service.isActive || String(service.center) !== String(ownCounter.center)) {
+    res.status(400);
+    throw new Error("This service is not available at your center");
+  }
+
+  const useOwnCounter =
+    String(service._id) === String(ownCounter.service) && ownCounter.status === "active";
+  const counter = useOwnCounter ? ownCounter : await pickCounter(ownCounter.center, service._id);
+
+  if (!counter) {
+    res.status(409);
+    throw new Error("No counter is running for this service right now");
+  }
+
+  const dateKey = getDateKey();
+  const tokenNumber = await nextTokenNumber(ownCounter.center, dateKey);
+
+  const token = await Token.create({
+    tokenNumber,
+    tokenCode: buildTokenCode(service.name, tokenNumber),
+    dateKey,
+    center: ownCounter.center,
+    service: service._id,
+    counter: counter._id,
+    walkInName: req.body.walkInName,
+    walkInPhone: req.body.walkInPhone || undefined,
+    notes: req.body.notes || undefined,
+    source: "walk_in",
+    createdBy: req.user._id,
+  });
+
+  const queue = await getTokenQueueInfo(token);
+  token.estimatedWaitMinutes = queue.estimatedWaitMinutes;
+  await token.save();
+
+  res.status(201).json({
+    success: true,
+    token: { ...formatToken(token), counterName: counter.name, queue },
   });
 });

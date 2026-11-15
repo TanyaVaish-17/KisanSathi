@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const TOKEN_STATUSES = ["waiting", "serving", "completed", "cancelled", "skipped", "no_show"];
+export const TOKEN_STATUSES = ["waiting", "serving", "completed", "cancelled", "skipped", "no_show", "expired"];
 export const ACTIVE_STATUSES = ["waiting", "serving"];
 
 const tokenSchema = new mongoose.Schema(
@@ -34,6 +34,8 @@ const tokenSchema = new mongoose.Schema(
     completedAt: Date,
     cancelledAt: Date,
     skippedAt: Date,
+    expiredAt: Date,
+    expiredFromStatus: { type: String, enum: ["waiting", "serving"] },
     cancelReason: { type: String, trim: true, maxlength: 200 },
     notes: { type: String, trim: true, maxlength: 300 },
   },

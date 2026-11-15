@@ -135,3 +135,59 @@ export const suggestArrival = (waitMinutes, now = new Date()) => {
     message: `You can reach the center in about ${arriveInMinutes} minutes.`,
   };
 };
+
+const EXPIRABLE_STATUSES = ["waiting", "serving"];
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+export const expireStaleTokens = async ({ counterId, farmerId, dateKey = getDateKey() } = {}) => {
+  if (!DATE_KEY_PATTERN.test(dateKey)) throw new Error("Invalid date key");
+
+  const base = { dateKey: { $lt: dateKey } };
+  if (counterId) base.counter = counterId;
+  if (farmerId) base.farmer = farmerId;
+
+  const candidates = (
+    await Token.find({ ...base, status: { $in: EXPIRABLE_STATUSES } }).select("_id")
+  ).map((token) => token._id);
+
+  if (candidates.length === 0) return 0;
+
+  let expired = 0;
+  for (const from of EXPIRABLE_STATUSES) {
+    const result = await Token.updateMany(
+      { ...base, _id: { $in: candidates }, status: from },
+      {
+        $set: {
+          status: "expired",
+          expiredFromStatus: from,
+          isActive: false,
+          expiredAt: new Date(),
+        },
+      }
+    );
+    expired += result.modifiedCount;
+  }
+
+  const stillServing = await Token.find({ _id: { $in: candidates }, status: "serving" }).select("_id");
+  const blocked = new Set(stillServing.map((token) => String(token._id)));
+  const releasable = candidates.filter((id) => !blocked.has(String(id)));
+
+  await Counter.updateMany({ currentToken: { $in: releasable } }, { $set: { currentToken: null } });
+
+  return expired;
+};
+
+export const releaseStaleCounterToken = async (counterId) => {
+  await expireStaleTokens({ counterId });
+
+  const counter = await Counter.findById(counterId).select("currentToken");
+  if (!counter?.currentToken) return;
+
+  const token = await Token.findById(counter.currentToken).select("status");
+  if (token && token.status === "serving") return;
+
+  await Counter.updateOne(
+    { _id: counterId, currentToken: counter.currentToken },
+    { $set: { currentToken: null } }
+  );
+};
