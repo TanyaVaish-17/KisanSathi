@@ -14,6 +14,7 @@ import {
 } from "../services/queueService.js";
 import { getDateKey } from "../utils/dateKey.js";
 import { getNextTokenNumber } from "../utils/nextTokenNumber.js";
+import { emitCenterUpdate, emitQueueUpdate } from "../services/realtimeService.js";
 
 const FIELDS = ["name", "service", "operator"];
 
@@ -192,6 +193,7 @@ export const callNextToken = asyncHandler(async (req, res) => {
   }
 
   await recalculateCounterQueue(counter._id, dateKey);
+  emitQueueUpdate(counter._id);
   await populateQueueToken(serving);
   res.json({ success: true, serving });
 });
@@ -284,7 +286,11 @@ const finishServingToken = async (req, res, status) => {
     { _id: counter._id, currentToken: token._id },
     { $set: { currentToken: null } }
   );
+
   await recalculateCounterQueue(counter._id, token.dateKey);
+  emitQueueUpdate(counter._id, {
+    finished: ["completed", "no_show"].includes(outcome) ? [result] : [],
+  });
   await populateQueueToken(result);
 
   res.json({ success: true, token: result, outcome });
@@ -328,6 +334,7 @@ export const createWalkInToken = asyncHandler(async (req, res) => {
   });
 
   await recalculateCounterQueue(counter._id, dateKey);
+  emitQueueUpdate(counter._id);
   await populateQueueToken(token);
   res.status(201).json({ success: true, token });
 });
@@ -373,6 +380,7 @@ export const updateCounter = asyncHandler(async (req, res) => {
   Object.assign(counter, changes);
   await counter.save();
   await recalculateCounterQueue(counter._id);
+  emitCenterUpdate(counter.center);
   await counter.populate(POPULATE);
 
   res.json({ success: true, counter });
@@ -409,6 +417,7 @@ export const updateCounterStatus = asyncHandler(async (req, res) => {
   const transfer = status === "inactive" ? await transferWaitingTokens(counter._id) : null;
 
   await recalculateCounterQueue(counter._id);
+  emitCenterUpdate(counter.center);
   await counter.populate(POPULATE);
 
   res.json({ success: true, counter, ...(transfer && { transfer }) });

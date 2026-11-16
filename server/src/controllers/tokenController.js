@@ -4,6 +4,7 @@ import Token, { ACTIVE_STATUSES } from "../models/Token.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { getDateKey } from "../utils/dateKey.js";
 import { getNextTokenNumber } from "../utils/nextTokenNumber.js";
+import { emitQueueUpdate } from "../services/realtimeService.js";
 import {
   expireStaleTokens,
   getTokenQueueInfo,
@@ -74,6 +75,7 @@ export const createToken = asyncHandler(async (req, res) => {
   }
 
   await recalculateCounterQueue(counter._id, dateKey);
+  emitQueueUpdate(counter._id);
   const queueInfo = await getTokenQueueInfo(token);
   token.estimatedWaitMinutes = queueInfo.estimatedWaitMinutes;
   token.estimatedStartAt = queueInfo.estimatedStartAt;
@@ -127,6 +129,7 @@ export const cancelToken = asyncHandler(async (req, res) => {
 
   if (token.counter) {
     await recalculateCounterQueue(token.counter, token.dateKey);
+    emitQueueUpdate(token.counter, { finished: [token] });
   }
 
   res.json({ success: true, token });

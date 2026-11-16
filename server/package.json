@@ -12,7 +12,8 @@
     "check:queue": "node src/scripts/checkQueue.js",
     "cleanup:stale:preview": "node src/scripts/cleanupStaleTokens.js",
     "cleanup:stale": "node src/scripts/cleanupStaleTokens.js --apply",
-    "check:socket": "node src/scripts/checkSocket.js"
+    "check:socket": "node src/scripts/checkSocket.js",
+    "listen:socket": "node src/scripts/listenSocket.js"
   },
   "keywords": [],
   "author": "",
