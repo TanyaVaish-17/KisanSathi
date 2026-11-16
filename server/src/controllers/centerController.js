@@ -4,6 +4,7 @@ import Counter from "../models/Counter.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import pick from "../utils/pick.js";
 import { getCenterComparison } from "../services/recommendationService.js";
+import { logAudit } from "../services/auditService.js";
 
 const CENTER_FIELDS = [
   "name",
@@ -67,12 +68,39 @@ export const updateCenter = asyncHandler(async (req, res) => {
     throw new Error("Center not found");
   }
 
-  Object.assign(center, pick(req.body, CENTER_FIELDS));
+  const updates = pick(req.body, CENTER_FIELDS);
+  const before = center.toObject();
+
+  Object.assign(center, updates);
   await center.save();
+
+  const after = center.toObject();
+  const changes = {};
+
+  CENTER_FIELDS.forEach((field) => {
+    if (updates[field] === undefined) return;
+    if (JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null)) {
+      changes[field] = { from: before[field] ?? null, to: after[field] ?? null };
+    }
+  });
+
+  res.locals.auditLogged = true;
+
+  if (Object.keys(changes).length > 0) {
+    await logAudit({
+      category: "admin",
+      action: "center_updated",
+      actor: req.user._id,
+      actorRole: req.user.role,
+      entityType: "center",
+      entityId: center._id,
+      center: center._id,
+      meta: { name: center.name, fields: Object.keys(changes), changes },
+    });
+  }
 
   res.json({ success: true, center });
 });
-
 // Admin: delete center
 export const deleteCenter = asyncHandler(async (req, res) => {
   const center = await ServiceCenter.findById(req.params.id);

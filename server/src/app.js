@@ -11,6 +11,8 @@ import counterRoutes from "./routes/counterRoutes.js";
 import tokenRoutes from "./routes/tokenRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import { auditMutations } from "./middleware/auditMiddleware.js";
+import auditRoutes from "./routes/auditRoutes.js";
 
 const app = express();
 
@@ -29,6 +31,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api", auditMutations);
 app.use("/api/auth", authRoutes); 
 app.use("/api/centers", centerRoutes);
 app.use("/api/services", serviceRoutes);
@@ -36,6 +39,7 @@ app.use("/api/counters", counterRoutes);
 app.use("/api/tokens", tokenRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/audit-logs", auditRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
