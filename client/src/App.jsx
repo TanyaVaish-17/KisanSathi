@@ -24,6 +24,7 @@ const Forbidden = lazy(() => import("./pages/Forbidden"));
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import DashboardRedirect from "./components/DashboardRedirect";
+const Notifications = lazy(() => import("./pages/Notifications"));
 
 function PageLoader() {
   return (
@@ -116,6 +117,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={["farmer", "admin"]}>
               <TokensList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute roles={["farmer"]}>
+              <Notifications />
             </ProtectedRoute>
           }
         />

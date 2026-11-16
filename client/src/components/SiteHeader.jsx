@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { Menu, X, User, LogOut, LayoutDashboard, Globe } from "lucide-react";
 import Chip from "./common/Chip";
+import NotificationBell from "./NotificationBell";
 
 export default function SiteHeader() {
   const { user, logout } = useAuth();
@@ -69,6 +70,7 @@ export default function SiteHeader() {
           {/* Auth buttons or User Profile */}
           {user ? (
             <div className="flex items-center gap-3">
+              {user.role === "farmer" && <NotificationBell />}
               <Link
                 to={getDashboardPath()}
                 className="flex h-10 items-center gap-2 rounded-btn bg-forest-950 px-4 text-sm font-medium text-lime-300 transition-colors hover:bg-forest-800"
@@ -115,6 +117,7 @@ export default function SiteHeader() {
 
         {/* Mobile menu trigger */}
         <div className="flex items-center gap-2 md:hidden">
+          {user?.role === "farmer" && <NotificationBell />}
           <button
             type="button"
             onClick={toggleLang}

@@ -1,6 +1,7 @@
 import Notification from "../models/Notification.js";
 import Token from "../models/Token.js";
 import { getIO } from "../socket.js";
+import { getDateKey } from "../utils/dateKey.js";
 
 const templates = {
   created: ({ code, center, service, serviceHi, wait }) => ({
@@ -41,15 +42,23 @@ const templates = {
   }),
 };
 
-export const createNotification = async ({ recipient, type, title, message, messageHi, token }) => {
-  const notification = await Notification.create({
-    recipient,
-    type,
-    title,
-    message,
-    messageHi,
-    token: token || null,
-  });
+export const createNotification = async ({ recipient, type, title, message, messageHi, token, key }) => {
+  let notification;
+
+  try {
+    notification = await Notification.create({
+      recipient,
+      type,
+      title,
+      message,
+      messageHi,
+      token: token || null,
+      key,
+    });
+  } catch (error) {
+    if (error.code === 11000) return null;
+    throw error;
+  }
 
   const io = getIO();
   if (io) io.to(`user:${recipient}`).emit("notification:new", notification);
@@ -79,5 +88,83 @@ export const notifyTokenEvent = async (event, tokenOrId) => {
     await createNotification({ recipient: token.farmer, token: token._id, ...content });
   } catch (error) {
     console.error("Notification failed:", error.message);
+  }
+};
+
+export const notifyQueueProgress = async (entries) => {
+  try {
+    for (const entry of entries) {
+      const farmer = entry.token.farmer;
+      if (!farmer || ![1, 3].includes(entry.position)) continue;
+
+      const code = entry.token.tokenCode;
+      const ahead = entry.aheadCount ?? entry.position - 1;
+      const wait = entry.estimatedWaitMinutes ?? 0;
+
+      const content =
+        entry.position === 1
+          ? {
+              title: "You are next",
+              message: `Token #${code} is next in line. Please be at the counter now.`,
+              messageHi: `टोकन #${code} अगला है। कृपया अभी काउंटर पर पहुँचें।`,
+            }
+          : {
+              title: "Your turn is coming up",
+              message: `Only ${ahead} farmers are ahead of token #${code}. Estimated wait: ${wait} min. Please start heading to the center.`,
+              messageHi: `टोकन #${code} से पहले केवल ${ahead} किसान हैं। अनुमानित प्रतीक्षा: ${wait} मिनट। कृपया केंद्र की ओर निकलें।`,
+            };
+
+      await createNotification({
+        recipient: farmer,
+        token: entry.token._id,
+        type: "queue_progress",
+        key: `progress:${entry.position}`,
+        ...content,
+      });
+    }
+  } catch (error) {
+    console.error("Progress notification failed:", error.message);
+  }
+};
+
+export const notifyCounterStatusChange = async (counter, status) => {
+  try {
+    const tokens = await Token.find({
+      counter: counter._id,
+      dateKey: getDateKey(),
+      status: "waiting",
+      farmer: { $ne: null },
+    }).select("tokenCode farmer");
+
+    for (const token of tokens) {
+      const code = token.tokenCode;
+      const name = counter.name;
+
+      const content =
+        status === "paused"
+          ? {
+              type: "delay",
+              title: "Counter paused",
+              message: `${name} is paused for a short while, so your wait for token #${code} may be longer. We will keep you updated.`,
+              messageHi: `${name} कुछ समय के लिए रुका हुआ है, इसलिए टोकन #${code} की प्रतीक्षा बढ़ सकती है। हम आपको अपडेट देते रहेंगे।`,
+            }
+          : status === "inactive"
+            ? {
+                type: "delay",
+                title: "Counter closed",
+                message: `${name} is closed, so your wait for token #${code} may be much longer. Please check with the center.`,
+                messageHi: `${name} बंद है, इसलिए टोकन #${code} की प्रतीक्षा काफ़ी बढ़ सकती है। कृपया केंद्र से पूछें।`,
+              }
+            : {
+                type: "queue_progress",
+                title: "Counter resumed",
+                message: `${name} is serving again. Token #${code} is back on track.`,
+                messageHi: `${name} फिर से सेवा दे रहा है। टोकन #${code} की कतार फिर चल पड़ी है।`,
+              };
+
+      await createNotification({ recipient: token.farmer, token: token._id, ...content });
+    }
+  } catch (error) {
+    console.error("Counter notification failed:", error.message);
   }
 };

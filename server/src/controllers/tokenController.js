@@ -130,7 +130,7 @@ export const cancelToken = asyncHandler(async (req, res) => {
 
   if (token.counter) {
     await recalculateCounterQueue(token.counter, token.dateKey);
-    emitQueueUpdate(token.counter, { finished: [token] });
+    emitQueueUpdate(token.counter, { finished: [token], progress: true });
   }
   await notifyTokenEvent("cancelled", token);
 

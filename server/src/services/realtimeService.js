@@ -1,10 +1,11 @@
 import Counter from "../models/Counter.js";
 import { getIO } from "../socket.js";
 import { calculateQueueState, suggestArrival } from "./queueService.js";
+import { notifyQueueProgress } from "./notificationService.js";
 
 const idOf = (ref) => String(ref?._id ?? ref);
 
-export const emitQueueUpdate = async (counterId, { finished = [] } = {}) => {
+export const emitQueueUpdate = async (counterId, { finished = [], progress = false } = {}) => {
   const io = getIO();
   if (!io || !counterId) return;
 
@@ -72,6 +73,7 @@ export const emitQueueUpdate = async (counterId, { finished = [] } = {}) => {
       });
     }
 
+    if (progress) await notifyQueueProgress(entries);
     if (counter.operator) {
       io.to(`user:${idOf(counter.operator)}`).emit("operator:queue-changed", {
         counterId: idOf(counter),

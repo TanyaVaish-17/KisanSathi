@@ -18,6 +18,7 @@ const notificationSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, maxlength: 120 },
     message: { type: String, required: true, trim: true, maxlength: 500 },
     messageHi: { type: String, trim: true, maxlength: 500 },
+    key: { type: String, trim: true },
     token: { type: mongoose.Schema.Types.ObjectId, ref: "Token", default: null },
     isRead: { type: Boolean, default: false },
     readAt: Date,
@@ -27,6 +28,10 @@ const notificationSchema = new mongoose.Schema(
 
 notificationSchema.index({ recipient: 1, createdAt: -1 });
 notificationSchema.index({ recipient: 1, isRead: 1 });
+notificationSchema.index(
+  { recipient: 1, token: 1, key: 1 },
+  { unique: true, partialFilterExpression: { key: { $type: "string" } } }
+);
 
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;
