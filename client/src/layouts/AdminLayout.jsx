@@ -67,7 +67,7 @@ export default function AdminLayout({ children, title, subtitle, action }) {
           </div>
           <div>
             <span className="block text-base font-bold text-white">
-              {isHindi ? "किसान सारथी" : "Kisan Sarthi"}
+              {isHindi ? "किसान साथी" : "KisanSathi"}
             </span>
             <span className="block text-[10px] font-mono uppercase tracking-wider text-lime-300">
               Admin Portal
@@ -122,7 +122,7 @@ export default function AdminLayout({ children, title, subtitle, action }) {
             >
               {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            <span className="font-bold text-forest-950">Kisan Sarthi Admin</span>
+            <span className="font-bold text-forest-950">KisanSathi Admin</span>
           </div>
 
           <div className="hidden items-center gap-2 md:flex">
