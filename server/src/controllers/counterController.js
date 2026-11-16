@@ -10,6 +10,7 @@ import {
   recalculateCounterQueue,
   releaseStaleCounterToken,
   transferWaitingTokens,
+  MAX_SKIPS,
 } from "../services/queueService.js";
 import { getDateKey } from "../utils/dateKey.js";
 import { getNextTokenNumber } from "../utils/nextTokenNumber.js";
@@ -208,10 +209,12 @@ const finishServingToken = async (req, res, status) => {
     throw new Error("There is no token currently being served");
   }
 
+  const outcome = status === "skipped" && token.skipCount >= MAX_SKIPS ? "no_show" : status;
+
   let result;
   let actualMinutes = null;
 
-  if (status === "completed") {
+  if (outcome === "completed") {
     const completedAt = new Date();
     const startedAt = token.servingStartedAt || token.calledAt;
     const minutes = startedAt
@@ -227,6 +230,12 @@ const finishServingToken = async (req, res, status) => {
     result = await Token.findOneAndUpdate(
       { _id: token._id, status: "serving" },
       { $set: fields },
+      { new: true }
+    );
+  } else if (outcome === "no_show") {
+    result = await Token.findOneAndUpdate(
+      { _id: token._id, status: "serving" },
+      { $set: { status: "no_show", skippedAt: new Date() } },
       { new: true }
     );
   } else {
@@ -278,7 +287,7 @@ const finishServingToken = async (req, res, status) => {
   await recalculateCounterQueue(counter._id, token.dateKey);
   await populateQueueToken(result);
 
-  res.json({ success: true, token: result });
+  res.json({ success: true, token: result, outcome });
 };
 
 export const completeServingToken = asyncHandler((req, res) =>
@@ -287,6 +296,10 @@ export const completeServingToken = asyncHandler((req, res) =>
 
 export const skipServingToken = asyncHandler((req, res) =>
   finishServingToken(req, res, "skipped")
+);
+
+export const noShowServingToken = asyncHandler((req, res) =>
+  finishServingToken(req, res, "no_show")
 );
 
 // Operator: issue a ticket for a walk-in farmer

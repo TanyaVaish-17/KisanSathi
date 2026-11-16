@@ -9,6 +9,7 @@ import {
   callNextToken,
   completeServingToken,
   skipServingToken,
+  noShowServingToken,
   createWalkInToken,
   createCounter,
   updateCounter,
@@ -58,6 +59,7 @@ router.post("/", protect, authorize("admin"), createRules, validate, createCount
 router.post("/mine/call-next", protect, authorize("operator"), callNextToken);
 router.post("/mine/complete", protect, authorize("operator"), completeServingToken);
 router.post("/mine/skip", protect, authorize("operator"), skipServingToken);
+router.post("/mine/no-show", protect, authorize("operator"), noShowServingToken);
 router.post(
   "/mine/walk-in",
   protect,

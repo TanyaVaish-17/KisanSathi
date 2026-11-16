@@ -19,6 +19,7 @@ import {
   Clock,
   Building2,
   SkipForward,
+  UserX
 } from "lucide-react";
 
 export default function OperatorDashboard() {
@@ -120,19 +121,41 @@ export default function OperatorDashboard() {
     }
   };
 
-  const handleSkipService = async () => {
+    const handleSkipService = async () => {
     if (!currentServing) return;
     setActionLoading(true);
     try {
       const res = await api.post("/counters/mine/skip");
       if (res.data.success) {
-        setActionNotice(`Token #${currentServing.tokenCode} marked as skipped.`);
+        setActionNotice(
+          res.data.outcome === "no_show"
+            ? `Token #${currentServing.tokenCode} was skipped too many times and is marked as no-show.`
+            : `Token #${currentServing.tokenCode} skipped and moved to the back of the queue.`
+        );
         setCurrentServing(null);
         fetchMyQueue();
         setTimeout(() => setActionNotice(null), 4000);
       }
     } catch (err) {
       alert(err.response?.data?.message || "Failed to skip token");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleNoShow = async () => {
+    if (!currentServing) return;
+    setActionLoading(true);
+    try {
+      const res = await api.post("/counters/mine/no-show");
+      if (res.data.success) {
+        setActionNotice(`Token #${currentServing.tokenCode} marked as no-show.`);
+        setCurrentServing(null);
+        fetchMyQueue();
+        setTimeout(() => setActionNotice(null), 4000);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to mark no-show");
     } finally {
       setActionLoading(false);
     }
@@ -328,7 +351,7 @@ export default function OperatorDashboard() {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <button
                       type="button"
                       onClick={handleCallNext}
@@ -357,6 +380,16 @@ export default function OperatorDashboard() {
                     >
                       <SkipForward className="h-4 w-4" />
                       <span>{isHindi ? "छोड़ें (Skip)" : "Skip"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleNoShow}
+                      disabled={actionLoading || !currentServing}
+                      className="flex h-12 items-center justify-center gap-2 rounded-btn border border-line-soft bg-white px-3 text-xs font-semibold uppercase tracking-wider text-slate-text hover:bg-surface disabled:opacity-50 cursor-pointer"
+                    >
+                      <UserX className="h-4 w-4" />
+                      <span>{isHindi ? "अनुपस्थित" : "No-show"}</span>
                     </button>
                   </div>
                 </div>
