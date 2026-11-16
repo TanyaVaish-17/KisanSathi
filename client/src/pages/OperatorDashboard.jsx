@@ -21,6 +21,7 @@ import {
   SkipForward,
   UserX
 } from "lucide-react";
+import useLiveUpdates from "../hooks/useLiveUpdates";
 
 export default function OperatorDashboard() {
   const { user } = useAuth();
@@ -62,9 +63,11 @@ export default function OperatorDashboard() {
 
   useEffect(() => {
     fetchMyQueue();
-    const interval = setInterval(fetchMyQueue, 8000);
+    const interval = setInterval(fetchMyQueue, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useLiveUpdates({ events: ["operator:queue-changed"], onEvent: fetchMyQueue });
 
   const handleToggleStatus = async () => {
     if (!counter || counter.status === "inactive") return;

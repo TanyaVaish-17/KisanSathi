@@ -20,6 +20,7 @@ import {
   RotateCw,
   Plus,
 } from "lucide-react";
+import useLiveUpdates from "../hooks/useLiveUpdates";
 
 export default function FarmerDashboard() {
   const { user } = useAuth();
@@ -71,9 +72,11 @@ export default function FarmerDashboard() {
 
   useEffect(() => {
     fetchMyTokens();
-    const interval = setInterval(fetchMyTokens, 8000);
+    const interval = setInterval(fetchMyTokens, 30000);
     return () => clearInterval(interval);
   }, [isHindi]);
+
+  useLiveUpdates({ events: ["token:updated"], onEvent: fetchMyTokens });
 
   const handleCancelToken = async (id) => {
     if (

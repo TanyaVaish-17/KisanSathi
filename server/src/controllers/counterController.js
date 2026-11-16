@@ -56,11 +56,39 @@ export const getCounters = asyncHandler(async (req, res) => {
   if (req.query.center) filter.center = req.query.center;
 
   const counters = await Counter.find(filter)
-    .select("center name service status")
+    .select("center name service status currentToken")
     .populate("service", "name estimatedDuration")
+    .populate("currentToken", "tokenCode status dateKey")
     .sort("name");
 
-  res.json({ success: true, count: counters.length, counters });
+  const today = getDateKey();
+
+  const waiting = await Token.aggregate([
+    {
+      $match: {
+        counter: { $in: counters.map((counter) => counter._id) },
+        dateKey: today,
+        status: "waiting",
+      },
+    },
+    { $group: { _id: "$counter", count: { $sum: 1 } } },
+  ]);
+  const waitingMap = new Map(waiting.map((row) => [String(row._id), row.count]));
+
+  const list = counters.map((counter) => {
+    const data = counter.toObject();
+    const serving = data.currentToken;
+
+    data.currentToken =
+      serving && serving.status === "serving" && serving.dateKey === today
+        ? { tokenCode: serving.tokenCode }
+        : null;
+    data.waitingCount = waitingMap.get(String(counter._id)) || 0;
+
+    return data;
+  });
+
+  res.json({ success: true, count: list.length, counters: list });
 });
 
 // Admin: all counters

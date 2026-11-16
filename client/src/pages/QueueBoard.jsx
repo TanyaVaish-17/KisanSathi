@@ -7,6 +7,7 @@ import CounterStatusPill from "../components/common/CounterStatusPill";
 import { useLanguage } from "../context/LanguageContext";
 import api from "../services/api";
 import { RotateCw, Building2, Clock, Users, ArrowLeft } from "lucide-react";
+import useLiveUpdates from "../hooks/useLiveUpdates";
 
 export default function QueueBoard() {
   const { id } = useParams();
@@ -33,9 +34,11 @@ export default function QueueBoard() {
 
   useEffect(() => {
     fetchBoard();
-    const interval = setInterval(fetchBoard, 15000);
+    const interval = setInterval(fetchBoard, 30000);
     return () => clearInterval(interval);
   }, [id]);
+
+  useLiveUpdates({ events: ["queue:updated"], centerId: id, onEvent: fetchBoard });
 
   return (
     <PublicLayout>
@@ -113,6 +116,10 @@ export default function QueueBoard() {
                 <div className="rounded-btn border border-line-soft bg-surface p-3 text-xs flex justify-between">
                   <span className="text-slate-muted">Service:</span>
                   <span className="font-semibold text-forest-950">{c.service?.name || "General"}</span>
+                </div>
+                <div className="mt-2 rounded-btn border border-line-soft bg-surface p-3 text-xs flex justify-between">
+                  <span className="text-slate-muted">{isHindi ? "प्रतीक्षा में:" : "Waiting:"}</span>
+                  <span className="font-semibold text-forest-950">{c.waitingCount ?? 0}</span>
                 </div>
               </div>
             ))}
