@@ -16,7 +16,7 @@ export default function Footer() {
                 KS
               </span>
               <span className="text-xl font-bold tracking-tight text-white">
-                {isHindi ? "किसान सारथी" : "Kisan Sarthi"}
+                {isHindi ? "किसान साथी" : "KisanSathi"}
               </span>
             </div>
             <p className="mt-4 max-w-md text-sm leading-[150%] text-mint-200/80">
@@ -97,7 +97,7 @@ export default function Footer() {
         {/* Oversized Wordmark (Keyvo style) */}
         <div className="mt-16 border-t border-forest-800/80 pt-12 text-center select-none overflow-hidden">
           <p className="font-bold tracking-tighter text-forest-800 text-[11vw] sm:text-[9vw] leading-none opacity-40">
-            KISAN SARTHI
+            KISANSATHI
           </p>
         </div>
 
