@@ -24,7 +24,7 @@ export default function AuthLayout({
           <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-forest-950 text-lime-brand font-mono text-sm font-bold">
             KS
           </div>
-          <span className="text-lg">{isHindi ? "किसान सारथी" : "Kisan Sarthi"}</span>
+          <span className="text-lg">{isHindi ? "किसान साथी" : "KisanSathi"}</span>
         </Link>
 
         <div className="flex items-center gap-3">
