@@ -8,6 +8,7 @@ import pick from "../utils/pick.js";
 import {
   getCounterQueue,
   recalculateCounterQueue,
+  releaseStaleCounterToken,
   transferWaitingTokens,
 } from "../services/queueService.js";
 import { getDateKey } from "../utils/dateKey.js";
@@ -139,27 +140,58 @@ export const getMyQueue = asyncHandler(async (req, res) => {
 export const callNextToken = asyncHandler(async (req, res) => {
   const counter = await requireActiveCounter(req, res);
   const dateKey = getDateKey();
+
+  await releaseStaleCounterToken(counter._id);
+
   const existingServing = await Token.exists({
     counter: counter._id,
     dateKey,
     status: "serving",
   });
-  if (existingServing) {
+  const pointer = await Counter.findById(counter._id).select("currentToken");
+
+  if (existingServing || pointer?.currentToken) {
     res.status(409);
     throw new Error("Complete or skip the current token before calling the next one");
   }
 
-  const serving = await Token.findOneAndUpdate(
-    { counter: counter._id, dateKey, status: "waiting" },
-    { $set: { status: "serving", calledAt: new Date(), servingStartedAt: new Date() } },
-    { new: true, sort: { queuedAt: 1, tokenNumber: 1 } }
-  );
-  if (serving) {
-    counter.currentToken = serving._id;
-    await counter.save();
-    await populateQueueToken(serving);
+  const candidate = await Token.findOne({ counter: counter._id, dateKey, status: "waiting" })
+    .sort({ queuedAt: 1, tokenNumber: 1 })
+    .select("_id");
+
+  if (!candidate) {
+    await recalculateCounterQueue(counter._id, dateKey);
+    return res.json({ success: true, serving: null });
   }
+
+  const claimed = await Counter.findOneAndUpdate(
+    { _id: counter._id, currentToken: null },
+    { $set: { currentToken: candidate._id } }
+  );
+
+  if (!claimed) {
+    res.status(409);
+    throw new Error("Complete or skip the current token before calling the next one");
+  }
+
+  const now = new Date();
+  const serving = await Token.findOneAndUpdate(
+    { _id: candidate._id, status: "waiting" },
+    { $set: { status: "serving", calledAt: now, servingStartedAt: now } },
+    { new: true }
+  );
+
+  if (!serving) {
+    await Counter.updateOne(
+      { _id: counter._id, currentToken: candidate._id },
+      { $set: { currentToken: null } }
+    );
+    res.status(409);
+    throw new Error("The queue just changed. Please try again");
+  }
+
   await recalculateCounterQueue(counter._id, dateKey);
+  await populateQueueToken(serving);
   res.json({ success: true, serving });
 });
 
@@ -170,61 +202,83 @@ const finishServingToken = async (req, res, status) => {
     dateKey: getDateKey(),
     status: "serving",
   });
+
   if (!token) {
     res.status(404);
     throw new Error("There is no token currently being served");
   }
 
+  let result;
+  let actualMinutes = null;
+
   if (status === "completed") {
     const completedAt = new Date();
     const startedAt = token.servingStartedAt || token.calledAt;
-    const actualMinutes = startedAt
+    const minutes = startedAt
       ? (completedAt.getTime() - new Date(startedAt).getTime()) / 60000
       : null;
-    token.status = "completed";
-    token.completedAt = completedAt;
-    if (actualMinutes !== null && actualMinutes > 0 && actualMinutes <= 240) {
-      token.actualServiceMinutes = Math.max(0.01, Number(actualMinutes.toFixed(2)));
+
+    const fields = { status: "completed", completedAt };
+    if (minutes !== null && minutes > 0 && minutes <= 240) {
+      actualMinutes = Math.max(0.01, Number(minutes.toFixed(2)));
+      fields.actualServiceMinutes = actualMinutes;
     }
+
+    result = await Token.findOneAndUpdate(
+      { _id: token._id, status: "serving" },
+      { $set: fields },
+      { new: true }
+    );
   } else {
     const { waiting } = await getCounterQueue(counter._id, token.dateKey);
     const lastQueuedAt = waiting.at(-1)?.queuedAt?.getTime() ?? 0;
-    token.status = "waiting";
-    token.queuedAt = new Date(Math.max(Date.now(), lastQueuedAt + 1));
-    token.calledAt = undefined;
-    token.servingStartedAt = undefined;
-    token.skippedAt = new Date();
-    token.skipCount += 1;
-  }
-  await token.save();
 
-  if (status === "completed" && token.actualServiceMinutes !== null) {
+    result = await Token.findOneAndUpdate(
+      { _id: token._id, status: "serving" },
+      {
+        $set: {
+          status: "waiting",
+          queuedAt: new Date(Math.max(Date.now(), lastQueuedAt + 1)),
+          skippedAt: new Date(),
+        },
+        $unset: { calledAt: "", servingStartedAt: "" },
+        $inc: { skipCount: 1 },
+      },
+      { new: true }
+    );
+  }
+
+  if (!result) {
+    res.status(409);
+    throw new Error("This token was already updated");
+  }
+
+  if (actualMinutes !== null) {
     const service = await Service.findById(token.service);
-    if (!service) {
-      res.status(404);
-      throw new Error("Service not found for completed token");
-    }
 
-    const previousAverage =
-      service.averageDuration || token.estimatedServiceMinutes || service.estimatedDuration;
-    const alpha = 0.3;
-    service.averageDuration =
-      service.completedServiceCount > 0
-        ? Math.max(
-            1,
-            alpha * token.actualServiceMinutes + (1 - alpha) * previousAverage
-          )
-        : Math.max(1, token.actualServiceMinutes);
-    service.completedServiceCount = (service.completedServiceCount || 0) + 1;
-    service.durationStatsUpdatedAt = token.completedAt;
-    await service.save();
+    if (service) {
+      const previousAverage =
+        service.averageDuration || token.estimatedServiceMinutes || service.estimatedDuration;
+      const alpha = 0.3;
+
+      service.averageDuration =
+        service.completedServiceCount > 0
+          ? Math.max(1, alpha * actualMinutes + (1 - alpha) * previousAverage)
+          : Math.max(1, actualMinutes);
+      service.completedServiceCount = (service.completedServiceCount || 0) + 1;
+      service.durationStatsUpdatedAt = result.completedAt;
+      await service.save();
+    }
   }
 
-  counter.currentToken = null;
-  await counter.save();
+  await Counter.updateOne(
+    { _id: counter._id, currentToken: token._id },
+    { $set: { currentToken: null } }
+  );
   await recalculateCounterQueue(counter._id, token.dateKey);
-  await populateQueueToken(token);
-  res.json({ success: true, token });
+  await populateQueueToken(result);
+
+  res.json({ success: true, token: result });
 };
 
 export const completeServingToken = asyncHandler((req, res) =>
