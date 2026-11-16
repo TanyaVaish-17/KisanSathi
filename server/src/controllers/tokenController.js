@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { getDateKey } from "../utils/dateKey.js";
 import { getNextTokenNumber } from "../utils/nextTokenNumber.js";
 import {
+  expireStaleTokens,
   getTokenQueueInfo,
   pickCounter,
   recalculateCounterQueue,
@@ -32,6 +33,7 @@ export const createToken = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Service not found for this center");
   }
+  await expireStaleTokens({ farmerId: req.user._id });
 
   const existingToken = await Token.exists({
     farmer: req.user._id,
@@ -88,6 +90,7 @@ export const createToken = asyncHandler(async (req, res) => {
 });
 
 export const getMyTokens = asyncHandler(async (req, res) => {
+  await expireStaleTokens({ farmerId: req.user._id });
   const tokens = await Token.find({ farmer: req.user._id })
     .sort({ createdAt: -1 })
     .populate("center", "name district")
