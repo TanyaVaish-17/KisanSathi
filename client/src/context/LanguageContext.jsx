@@ -5,7 +5,7 @@ const LANG_KEY = "kisansathi_lang";
 const translations = {
   en: {
     nav: {
-      brand: "Kisan Sarthi",
+      brand: "KisanSathi",
       tagline: "Skip the line. Keep your day.",
       centers: "Centers",
       howItWorks: "How It Works",
@@ -97,12 +97,12 @@ const translations = {
       desc: "Digital queue management system designed for India's farmers, mandis, and procurement centers.",
       quickLinks: "Quick Links",
       legal: "Public Utility",
-      copyright: "© 2026 Kisan Sarthi. Built for fair farmer access.",
+      copyright: "© 2026 KisanSathi. Built for fair farmer access.",
     },
   },
   hi: {
     nav: {
-      brand: "किसान सारथी",
+      brand: "किसान साथी",
       tagline: "कतार छोड़ें। अपना समय बचाएं।",
       centers: "मंडी केंद्र",
       howItWorks: "यह कैसे काम करता है",
@@ -194,7 +194,7 @@ const translations = {
       desc: "भारत के किसानों, कृषि मंडियों और खरीद केंद्रों के लिए समर्पित डिजिटल कतार प्रणाली।",
       quickLinks: "त्वरित लिंक",
       legal: "सार्वजनिक सेवा",
-      copyright: "© 2026 किसान सारथी। किसानों के सम्मान और समय के लिए।",
+      copyright: "© 2026 किसान साथी। किसानों के सम्मान और समय के लिए।",
     },
   },
 };
