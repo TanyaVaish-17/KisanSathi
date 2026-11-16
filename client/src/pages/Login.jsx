@@ -55,7 +55,7 @@ export default function Login() {
   return (
     <AuthLayout
       eyebrow={isHindi ? "स्वागत है" : "WELCOME BACK"}
-      title={isHindi ? "किसान सारथी में लॉग इन करें।" : "Log in to Kisan Sarthi."}
+      title={isHindi ? "किसान साथी में लॉग इन करें।" : "Log in to KisanSathi."}
       panelTitle={isHindi ? "कतार छोड़ें। अपना समय बचाएं।" : "Skip the line. Keep your day."}
       panelText={
         isHindi
