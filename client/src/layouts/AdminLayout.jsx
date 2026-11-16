@@ -8,6 +8,7 @@ import {
   Wrench,
   Layers,
   Users,
+  MessageSquare,
   LogOut,
   Menu,
   X,
@@ -48,6 +49,11 @@ export default function AdminLayout({ children, title, subtitle, action }) {
       to: "/admin/operators",
       label: isHindi ? "ऑपरेटर्स" : "Operators",
       icon: Users,
+    },
+    {
+      to: "/admin/feedback",
+      label: isHindi ? "फीडबैक" : "Feedback",
+      icon: MessageSquare,
     },
   ];
 

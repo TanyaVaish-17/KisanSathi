@@ -25,6 +25,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import DashboardRedirect from "./components/DashboardRedirect";
 const Notifications = lazy(() => import("./pages/Notifications"));
+const AdminFeedback = lazy(() => import("./pages/admin/AdminFeedback"));
 
 function PageLoader() {
   return (
@@ -177,6 +178,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={["admin"]}>
               <AdminOperators />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/feedback"
+          element={
+            <ProtectedRoute roles={["admin"]}>
+              <AdminFeedback />
             </ProtectedRoute>
           }
         />

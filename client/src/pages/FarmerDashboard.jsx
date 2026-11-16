@@ -19,8 +19,11 @@ import {
   CheckCircle,
   RotateCw,
   Plus,
+  Star,
 } from "lucide-react";
 import useLiveUpdates from "../hooks/useLiveUpdates";
+import StarRating from "../components/StarRating";
+import FeedbackModal from "../components/FeedbackModal";
 
 export default function FarmerDashboard() {
   const { user } = useAuth();
@@ -30,6 +33,8 @@ export default function FarmerDashboard() {
   const [pastTokens, setPastTokens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [feedbackByToken, setFeedbackByToken] = useState({});
+  const [ratingToken, setRatingToken] = useState(null);
 
   const fetchMyTokens = () => {
     api
@@ -70,8 +75,22 @@ export default function FarmerDashboard() {
       .finally(() => setLoading(false));
   };
 
+  const fetchMyFeedback = () => {
+    api
+      .get("/feedback/mine")
+      .then((res) => {
+        const map = {};
+        (res.data.feedback || []).forEach((item) => {
+          map[item.token?._id || item.token] = item;
+        });
+        setFeedbackByToken(map);
+      })
+      .catch(() => setFeedbackByToken({}));
+  };
+
   useEffect(() => {
     fetchMyTokens();
+    fetchMyFeedback();
     const interval = setInterval(fetchMyTokens, 30000);
     return () => clearInterval(interval);
   }, [isHindi]);
@@ -248,8 +267,21 @@ export default function FarmerDashboard() {
                           · {p.counter?.name || "Counter"}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 text-xs font-mono text-slate-muted">
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-slate-muted">
                         <span>{new Date(p.createdAt).toLocaleDateString()}</span>
+                        {p.status === "completed" &&
+                          (feedbackByToken[p._id] ? (
+                            <StarRating value={feedbackByToken[p._id].rating} size="sm" />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setRatingToken(p)}
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-btn border border-line-soft bg-white px-3 py-1.5 font-semibold text-forest-950 hover:bg-surface"
+                            >
+                              <Star className="h-3.5 w-3.5" />
+                              {isHindi ? "यात्रा को रेट करें" : "Rate visit"}
+                            </button>
+                          ))}
                       </div>
                     </div>
                   ))
@@ -305,6 +337,17 @@ export default function FarmerDashboard() {
           </div>
         </div>
       </div>
+            {ratingToken && (
+        <FeedbackModal
+          token={ratingToken}
+          isHindi={isHindi}
+          onClose={() => setRatingToken(null)}
+          onSubmitted={() => {
+            setRatingToken(null);
+            fetchMyFeedback();
+          }}
+        />
+      )}
     </PublicLayout>
   );
 }
