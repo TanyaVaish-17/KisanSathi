@@ -116,7 +116,7 @@ export default function SiteHeader() {
         </nav>
 
         {/* Mobile menu trigger */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 md:hidden" >
           {user?.role === "farmer" && <NotificationBell />}
           <button
             type="button"
