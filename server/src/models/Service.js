@@ -22,6 +22,9 @@ const serviceSchema = new mongoose.Schema(
       max: [240, "Duration cannot exceed 240 minutes"],
       default: 10,
     },
+    averageDuration: { type: Number, min: 1, max: 240, default: null },
+    completedServiceCount: { type: Number, min: 0, default: 0 },
+    durationStatsUpdatedAt: Date,
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }

@@ -27,7 +27,12 @@ const tokenSchema = new mongoose.Schema(
     status: { type: String, enum: TOKEN_STATUSES, default: "waiting" },
     isActive: { type: Boolean, default: true },
     queuedAt: { type: Date, default: Date.now },
+    estimatedServiceMinutes: { type: Number, min: 1, max: 240 },
     estimatedWaitMinutes: { type: Number, min: 0, default: 0 },
+    estimatedStartAt: Date,
+    estimatedCompletionAt: Date,
+    actualServiceMinutes: { type: Number, min: 0, default: null },
+    etaUpdatedAt: Date,
     skipCount: { type: Number, min: 0, default: 0 },
     calledAt: Date,
     servingStartedAt: Date,
@@ -52,9 +57,21 @@ tokenSchema.pre("save", async function () {
   this.isActive = ACTIVE_STATUSES.includes(this.status);
 });
 
+tokenSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
+  const update = this.getUpdate();
+  if (!update || Array.isArray(update)) return;
+
+  const status = update.$set?.status ?? update.status;
+  if (status) {
+    update.$set = { ...update.$set, isActive: ACTIVE_STATUSES.includes(status) };
+    this.setUpdate(update);
+  }
+});
+
 tokenSchema.index({ center: 1, dateKey: 1, tokenNumber: 1 }, { unique: true });
 tokenSchema.index({ center: 1, dateKey: 1, status: 1 });
 tokenSchema.index({ counter: 1, status: 1, queuedAt: 1 });
+tokenSchema.index({ center: 1, dateKey: 1, counter: 1, status: 1, queuedAt: 1, tokenNumber: 1 });
 tokenSchema.index({ farmer: 1, createdAt: -1 });
 tokenSchema.index(
   { farmer: 1 },

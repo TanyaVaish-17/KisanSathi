@@ -44,6 +44,12 @@ Run once from the `server` folder:
 
 This creates the admin and operator accounts, plus demo centers, services and counters. It is safe to run again.
 
+To add five demo farmer accounts with waiting tokens to every active counter, run from the `server` folder:
+
+    npm run seed:farmers
+
+The script is safe to rerun. Seed farmers use `farmer123` as their password and have globally numbered email addresses, such as `farmer1@kisansathi.in` and `farmer2@kisansathi.in`.
+
 ### 3. Run the server
 
     npm run dev

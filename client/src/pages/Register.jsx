@@ -1,133 +1,254 @@
-import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import AuthLayout from "../layouts/AuthLayout";
 import { useAuth } from "../context/AuthContext";
-
-const inputClass =
-  "mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500";
-
-const initialForm = {
-  name: "",
-  phone: "",
-  email: "",
-  village: "",
-  district: "",
-  preferredLanguage: "en",
-  password: "",
-  confirmPassword: "",
-};
+import { useLanguage } from "../context/LanguageContext";
+import { Eye, EyeOff, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
 
 export default function Register() {
-  const { user, register } = useAuth();
-  const [form, setForm] = useState(initialForm);
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const { register } = useAuth();
+  const { isHindi } = useLanguage();
+  const navigate = useNavigate();
 
-  if (user) return <Navigate to="/dashboard" replace />;
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [preferredLanguage, setPreferredLanguage] = useState(isHindi ? "hi" : "en");
+  const [village, setVillage] = useState("");
+  const [district, setDistrict] = useState("");
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(null);
 
-    if (!/^[6-9]\d{9}$/.test(form.phone)) {
-      return setError("Enter a valid 10-digit mobile number");
-    }
-    if (form.password.length < 6) {
-      return setError("Password must be at least 6 characters");
-    }
-    if (form.password !== form.confirmPassword) {
-      return setError("Passwords do not match");
+    if (name.trim().length < 2) {
+      setError(isHindi ? "नाम कम से कम २ अक्षरों का होना चाहिए।" : "Name must be at least 2 characters.");
+      return;
     }
 
-    const { confirmPassword, ...payload } = form;
-    if (!payload.email) delete payload.email;
+    if (!email.trim() && !phone.trim()) {
+      setError(isHindi ? "ईमेल या १० अंकों का मोबाइल नंबर में से कम से कम एक अवश्य भरें।" : "Please provide either email or mobile number.");
+      return;
+    }
 
-    setSubmitting(true);
+    if (phone.trim() && !/^[6-9]\d{9}$/.test(phone.trim())) {
+      setError(isHindi ? "कृपया १० अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें (6-9 से शुरू)।" : "Phone must be a valid 10-digit Indian mobile number starting with 6-9.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError(isHindi ? "पासवर्ड कम से कम ६ अक्षरों का होना चाहिए।" : "Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
     try {
+      const payload = {
+        name: name.trim(),
+        password,
+        preferredLanguage,
+      };
+      if (email.trim()) payload.email = email.trim();
+      if (phone.trim()) payload.phone = phone.trim();
+      if (village.trim()) payload.village = village.trim();
+      if (district.trim()) payload.district = district.trim();
+
       await register(payload);
+      navigate("/farmer", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong. Please try again.");
+      const msg = err.response?.data?.message || err.message || (isHindi ? "पंजीकरण विफल रहा।" : "Registration failed. Please check your details.");
+      setError(msg);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm border border-green-100">
-        <h1 className="text-2xl font-bold text-green-700">Create your account</h1>
-        <p className="mt-1 text-sm text-slate-500">Register as a farmer to book queue tokens</p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium">Full name</label>
-            <input id="name" name="name" required value={form.name} onChange={handleChange} className={inputClass} />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium">Mobile number</label>
-              <input id="phone" name="phone" inputMode="numeric" maxLength={10} required value={form.phone} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium">Email (optional)</label>
-              <input id="email" name="email" type="email" value={form.email} onChange={handleChange} className={inputClass} />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="village" className="block text-sm font-medium">Village</label>
-              <input id="village" name="village" value={form.village} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="district" className="block text-sm font-medium">District</label>
-              <input id="district" name="district" value={form.district} onChange={handleChange} className={inputClass} />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="preferredLanguage" className="block text-sm font-medium">Preferred language</label>
-            <select id="preferredLanguage" name="preferredLanguage" value={form.preferredLanguage} onChange={handleChange} className={inputClass}>
-              <option value="en">English</option>
-              <option value="hi">हिन्दी (Hindi)</option>
-            </select>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium">Password</label>
-              <input id="password" name="password" type="password" required value={form.password} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium">Confirm password</label>
-              <input id="confirmPassword" name="confirmPassword" type="password" required value={form.confirmPassword} onChange={handleChange} className={inputClass} />
-            </div>
-          </div>
-
-          {error && (
-            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-green-600 py-2.5 font-semibold text-white hover:bg-green-700 disabled:opacity-60"
+    <AuthLayout
+      eyebrow={isHindi ? "नया किसान खाता" : "NEW FARMER"}
+      title={isHindi ? "अपना खाता बनाएं।" : "Create your account."}
+      panelTitle={isHindi ? "खेत से ही अपनी बारी बुक करें।" : "Book your turn from the field."}
+      panelText={
+        isHindi
+          ? "हजारों किसानों के साथ जुड़ें जो हर मंडी दौरे में ५ से १० घंटे बचा रहे हैं।"
+          : "Join thousands of farmers saving up to 10 hours per mandi visit with fair digital queuing."
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {/* Form-level error banner */}
+        {error && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-btn border border-danger/40 bg-danger-soft p-3.5 text-xs text-danger font-medium"
           >
-            {submitting ? "Creating account..." : "Register"}
-          </button>
-        </form>
+            <AlertTriangle className="h-4 w-4 shrink-0 text-danger mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
 
-        <p className="mt-6 text-center text-sm text-slate-500">
-          Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-green-700 hover:underline">
-            Log in
+        <div>
+          <label
+            htmlFor="name"
+            className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+          >
+            {isHindi ? "पूरा नाम *" : "Full Name *"}
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={isHindi ? "उदा. रमेश कुमार" : "e.g. Ramesh Kumar"}
+            required
+            className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-4 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+            >
+              {isHindi ? "मोबाइल नंबर *" : "Mobile Number *"}
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="9876543210"
+              className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-4 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+            >
+              {isHindi ? "ईमेल (वैकल्पिक)" : "Email (Optional)"}
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="farmer@example.com"
+              className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-4 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+          >
+            {isHindi ? "पासवर्ड (कम से कम ६ अक्षर) *" : "Password (min 6 characters) *"}
+          </label>
+          <div className="relative mt-1.5">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="h-11 w-full rounded-btn border border-line-soft bg-white pl-4 pr-11 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-muted hover:text-forest-950 cursor-pointer"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="district"
+              className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+            >
+              {isHindi ? "जिला" : "District"}
+            </label>
+            <input
+              id="district"
+              type="text"
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              placeholder={isHindi ? "उदा. गाज़ियाबाद" : "e.g. Ghaziabad"}
+              className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-4 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="village"
+              className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+            >
+              {isHindi ? "गांव / क्षेत्र" : "Village / Area"}
+            </label>
+            <input
+              id="village"
+              type="text"
+              value={village}
+              onChange={(e) => setVillage(e.target.value)}
+              placeholder={isHindi ? "उदा. डासना" : "e.g. Dasna"}
+              className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-4 text-sm text-forest-950 placeholder:text-slate-muted focus-visible:outline-2 focus-visible:outline-forest-950"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="preferredLanguage"
+            className="block text-xs font-semibold uppercase tracking-wider text-forest-950"
+          >
+            {isHindi ? "पसंदीदा भाषा" : "Preferred Language"}
+          </label>
+          <select
+            id="preferredLanguage"
+            value={preferredLanguage}
+            onChange={(e) => setPreferredLanguage(e.target.value)}
+            className="mt-1.5 h-11 w-full rounded-btn border border-line-soft bg-white px-3 text-sm text-forest-950 focus-visible:outline-2 focus-visible:outline-forest-950"
+          >
+            <option value="en">English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-btn bg-forest-950 px-6 text-sm font-medium text-lime-300 transition-colors hover:bg-forest-800 disabled:opacity-50 cursor-pointer"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-lime-300" />
+          ) : (
+            <>
+              <span>{isHindi ? "खाता बनाएं" : "Create Account"}</span>
+              <ArrowRight className="h-4 w-4" />
+            </>
+          )}
+        </button>
+
+        <div className="pt-2 text-center text-xs text-slate-text">
+          <span>{isHindi ? "पहले से पंजीकृत हैं?" : "Already registered?"} </span>
+          <Link to="/login" className="font-semibold text-forest-950 hover:underline">
+            {isHindi ? "यहाँ लॉग इन करें" : "Log in here"}
           </Link>
-        </p>
-      </div>
-    </main>
+        </div>
+      </form>
+    </AuthLayout>
   );
 }
