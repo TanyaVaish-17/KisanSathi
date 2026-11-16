@@ -15,6 +15,7 @@ import {
 import { getDateKey } from "../utils/dateKey.js";
 import { getNextTokenNumber } from "../utils/nextTokenNumber.js";
 import { emitCenterUpdate, emitQueueUpdate } from "../services/realtimeService.js";
+import { notifyTokenEvent } from "../services/notificationService.js";
 
 const FIELDS = ["name", "service", "operator"];
 
@@ -223,6 +224,7 @@ export const callNextToken = asyncHandler(async (req, res) => {
   await recalculateCounterQueue(counter._id, dateKey);
   emitQueueUpdate(counter._id);
   await populateQueueToken(serving);
+  await notifyTokenEvent("called", serving);
   res.json({ success: true, serving });
 });
 
@@ -320,6 +322,7 @@ const finishServingToken = async (req, res, status) => {
     finished: ["completed", "no_show"].includes(outcome) ? [result] : [],
   });
   await populateQueueToken(result);
+  await notifyTokenEvent(outcome === "skipped" ? "skipped" : outcome, result);
 
   res.json({ success: true, token: result, outcome });
 };

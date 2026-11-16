@@ -12,6 +12,7 @@ import {
   recalculateCounterQueue,
   suggestArrival,
 } from "../services/queueService.js";
+import { notifyTokenEvent } from "../services/notificationService.js";
 
 const populateToken = (token) =>
   token.populate([
@@ -82,7 +83,7 @@ export const createToken = asyncHandler(async (req, res) => {
   token.estimatedCompletionAt = queueInfo.estimatedCompletionAt;
   token.etaUpdatedAt = queueInfo.etaUpdatedAt;
   await populateToken(token);
-
+  await notifyTokenEvent("created", token);
   res.status(201).json({
     success: true,
     token,
@@ -131,6 +132,7 @@ export const cancelToken = asyncHandler(async (req, res) => {
     await recalculateCounterQueue(token.counter, token.dateKey);
     emitQueueUpdate(token.counter, { finished: [token] });
   }
+  await notifyTokenEvent("cancelled", token);
 
   res.json({ success: true, token });
 });
