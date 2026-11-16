@@ -2,11 +2,12 @@ import "dotenv/config";
 import http from "http";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
+import { initSocket } from "./socket.js";
 
 const PORT = process.env.PORT || 5000;
 
-// http server is used now so Socket.IO can attach to it in a later step
 const server = http.createServer(app);
+initSocket(server);
 
 const start = async () => {
   try {
