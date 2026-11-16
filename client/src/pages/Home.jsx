@@ -174,8 +174,8 @@ export default function Home() {
               </h2>
               <p className="mt-4 text-base leading-[150%] text-slate-text">
                 {isHindi
-                  ? "किसान सारथी मंडी के हर काउंटर को डिजिटल कतार से जोड़ता है। अपना टोकन घर से बुक करें और केवल तभी मंडी पहुंचें जब आपकी बारी आने वाली हो।"
-                  : "Kisan Sarthi turns chaotic mandi grounds into orderly virtual queues. Know your exact position, avoid wasted fuel, and protect your precious working hours."}
+                  ? "किसान साथी मंडी के हर काउंटर को डिजिटल कतार से जोड़ता है। अपना टोकन घर से बुक करें और केवल तभी मंडी पहुंचें जब आपकी बारी आने वाली हो।"
+                  : "KisanSathi turns chaotic mandi grounds into orderly virtual queues. Know your exact position, avoid wasted fuel, and protect your precious working hours."}
               </p>
 
               <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -456,7 +456,7 @@ export default function Home() {
               </h2>
               <p className="mt-4 text-base font-medium text-forest-950/80">
                 {isHindi
-                  ? "आज ही किसान सारथी पर अपना निःशुल्क खाता बनाएं और अपनी अगली फसल बिक्री को परेशानी मुक्त बनाएं।"
+                  ? "आज ही किसान साथी पर अपना निःशुल्क खाता बनाएं और अपनी अगली फसल बिक्री को परेशानी मुक्त बनाएं।"
                   : "Register in under a minute with your mobile number. Book appointments, see waiting times, and reclaim your day."}
               </p>
 
