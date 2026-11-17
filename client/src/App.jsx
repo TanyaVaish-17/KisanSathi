@@ -24,6 +24,7 @@ const Forbidden = lazy(() => import("./pages/Forbidden"));
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
 import DashboardRedirect from "./components/DashboardRedirect";
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AdminFeedback = lazy(() => import("./pages/admin/AdminFeedback"));
 
@@ -186,6 +187,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={["admin"]}>
               <AdminFeedback />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <ProtectedRoute roles={["admin"]}>
+              <AdminAnalytics />
             </ProtectedRoute>
           }
         />

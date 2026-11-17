@@ -9,6 +9,7 @@ import {
   Layers,
   Users,
   MessageSquare,
+  ChartColumn,
   LogOut,
   Menu,
   X,
@@ -54,6 +55,11 @@ export default function AdminLayout({ children, title, subtitle, action }) {
       to: "/admin/feedback",
       label: isHindi ? "फीडबैक" : "Feedback",
       icon: MessageSquare,
+    },
+    {
+      to: "/admin/analytics",
+      label: isHindi ? "विश्लेषण" : "Analytics",
+      icon: ChartColumn,
     },
   ];
 
