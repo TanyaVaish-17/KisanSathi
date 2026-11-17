@@ -14,7 +14,6 @@ import feedbackRoutes from "./routes/feedbackRoutes.js";
 import { auditMutations } from "./middleware/auditMiddleware.js";
 import auditRoutes from "./routes/auditRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
-import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
 
