@@ -13,6 +13,8 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import { auditMutations } from "./middleware/auditMiddleware.js";
 import auditRoutes from "./routes/auditRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
 
@@ -40,6 +42,7 @@ app.use("/api/tokens", tokenRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/audit-logs", auditRoutes);
+app.use("/api/analytics", analyticsRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

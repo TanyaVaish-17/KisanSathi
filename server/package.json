@@ -13,7 +13,9 @@
     "cleanup:stale:preview": "node src/scripts/cleanupStaleTokens.js",
     "cleanup:stale": "node src/scripts/cleanupStaleTokens.js --apply",
     "check:socket": "node src/scripts/checkSocket.js",
-    "listen:socket": "node src/scripts/listenSocket.js"
+    "listen:socket": "node src/scripts/listenSocket.js",
+    "seed:history": "node src/seeds/seedHistory.js",
+    "seed:history:clear": "node src/seeds/seedHistory.js --clear"
   },
   "keywords": [],
   "author": "",
