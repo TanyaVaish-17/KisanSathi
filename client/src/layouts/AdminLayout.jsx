@@ -71,7 +71,7 @@ export default function AdminLayout({ children, title, subtitle, action }) {
   return (
     <div className="flex min-h-screen bg-surface">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-forest-800 bg-forest-950 text-mint-200 md:flex">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-forest-800 bg-forest-950 text-mint-200 md:sticky md:top-0 md:flex md:h-screen md:self-start">
         {/* Brand */}
         <div className="flex h-16 items-center gap-2.5 border-b border-forest-800 px-6">
           <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-lime-brand font-mono text-sm font-bold text-forest-950">
@@ -88,7 +88,7 @@ export default function AdminLayout({ children, title, subtitle, action }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-4 py-6">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
           {navItems.map((item) => {
             const active = isCurrent(item);
             const Icon = item.icon;
