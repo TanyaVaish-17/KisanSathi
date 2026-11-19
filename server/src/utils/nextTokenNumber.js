@@ -6,7 +6,7 @@ export const getNextTokenNumber = async (center, dateKey) => {
   const existingSequence = await TokenSequence.findOneAndUpdate(
     filter,
     { $inc: { seq: 1 } },
-    { new: true }
+    { returnDocument: "after" }
   );
   if (existingSequence) return existingSequence.seq;
 
@@ -26,7 +26,7 @@ export const getNextTokenNumber = async (center, dateKey) => {
   const sequence = await TokenSequence.findOneAndUpdate(
     filter,
     { $inc: { seq: 1 } },
-    { new: true }
+    { returnDocument: "after" }
   );
   if (!sequence) throw new Error("Unable to allocate the next token number");
   return sequence.seq;
