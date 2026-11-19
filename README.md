@@ -21,6 +21,11 @@ Book a virtual token · Track your place in line live · Arrive only when your t
 
 </div>
 
+<p align="center">
+  <a href="https://kisan-sathi-bay.vercel.app"><b>🌐 Live Demo</b></a> &nbsp;·&nbsp;
+  <a href="https://kisansathi-api.onrender.com/api/health"><b>⚙️ API Health</b></a>
+</p>
+
 <br>
 
 | ⏱️ Live waiting time | 🔔 Instant notifications | 📊 Real analytics | 🌐 Hindi and English |
@@ -36,6 +41,21 @@ Farmers often spend hours standing in line at mandis and procurement centers wit
 **KisanSathi replaces the physical line with a virtual one.** A farmer books a token, sees an honest estimate of the waiting time, and gets notified as the queue moves. Operators run the queue from a simple counter console, and administrators get real numbers about waiting times, busy hours and counter usage.
 
 > Built with the MERN stack as a group project for the B.Tech Full Stack Development mid-semester examination.
+
+---
+
+## 🌍 Live Demo
+
+| | Link |
+| --- | --- |
+| 🖥️ Frontend (Vercel) | https://kisan-sathi-bay.vercel.app |
+| ⚙️ Backend API (Render) | https://kisansathi-api.onrender.com |
+| ❤️ Health check | https://kisansathi-api.onrender.com/api/health |
+| 🗄️ Database | MongoDB Atlas |
+
+> ⏳ The backend runs on Render's free tier and sleeps after inactivity. The first request can take 30–60 seconds to wake it up.
+
+Demo login credentials are listed in [Demo accounts](#-demo-accounts).
 
 ---
 
@@ -257,7 +277,7 @@ Open `server/.env` and fill in the values:
 
 | Variable | Description |
 | --- | --- |
-| `NODE_ENV` | `development` locally, to see error stack traces. Leave it unset or set `production` when deploying |
+| `NODE_ENV` | `development` |
 | `PORT` | API port, default `5000` |
 | `MONGO_URI` | Your connection string, ending with the database name `kisansathi`. For Atlas: `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/kisansathi?retryWrites=true&w=majority` |
 | `CLIENT_URL` | Frontend address, default `http://localhost:5173` |
@@ -331,6 +351,23 @@ Open http://localhost:5173 🎉
 | client | `npm run lint` | Run ESLint |
 
 </details>
+
+### ☁️ Deployment
+
+| Part | Platform | Settings |
+| --- | --- | --- |
+| Database | MongoDB Atlas | Network access allows Render |
+| Server | Render | Root `server`, build `npm install`, start `npm start` |
+| Client | Vercel | Root `client`, framework Vite |
+
+**Render environment variables:** `NODE_ENV`, `MONGO_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ENFORCE_CENTER_HOURS`, `CLIENT_URL` (the Vercel URL, no trailing `/`).
+
+**Vercel environment variables:**
+
+```env
+VITE_API_URL=https://kisansathi-api.onrender.com/api
+VITE_SOCKET_URL=https://kisansathi-api.onrender.com
+```
 
 ---
 
@@ -518,7 +555,6 @@ npm test
 | `tests/queueHelpers.test.js` | Arrival advice, India time date keys and helpers |
 | `tests/auth.test.js` | Register, login, JWT checks and role based access |
 | `tests/tokens.test.js` | Booking, counter selection, cancelling and stale token expiry |
-| `tests/operator.test.js` | Operator console: call next, complete, skip, no-show, walk-in and counter status changes |
 
 GitHub Actions runs these tests and builds the client on every push and pull request.
 
