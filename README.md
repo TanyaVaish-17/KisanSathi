@@ -503,7 +503,27 @@ All endpoints start with `/api`. Protected endpoints need the header `Authorizat
 
 ## 🧪 Testing
 
-The APIs were tested manually with Thunder Client, and the queue calculations with the included check scripts.
+### Automated tests
+
+The backend has automated tests written with the built-in Node.js test runner and Supertest. They run against a temporary in-memory MongoDB, so they never touch your real database and need no `.env` file.
+
+```bash
+cd server
+npm test
+```
+
+| File | What it covers |
+| --- | --- |
+| `tests/eta.test.js` | Wait time estimation for serving and waiting tokens |
+| `tests/queueHelpers.test.js` | Arrival advice, India time date keys and helpers |
+| `tests/auth.test.js` | Register, login, JWT checks and role based access |
+| `tests/tokens.test.js` | Booking, counter selection, cancelling and stale token expiry |
+
+GitHub Actions runs these tests and builds the client on every push and pull request.
+
+### Manual checks
+
+The rest of the APIs were tested manually with Thunder Client, and the queue calculations with the included check scripts. Request and response examples are in [docs/API.md](docs/API.md).
 
 | Area | What to check |
 | --- | --- |
