@@ -518,6 +518,7 @@ npm test
 | `tests/queueHelpers.test.js` | Arrival advice, India time date keys and helpers |
 | `tests/auth.test.js` | Register, login, JWT checks and role based access |
 | `tests/tokens.test.js` | Booking, counter selection, cancelling and stale token expiry |
+| `tests/operator.test.js` | Operator console: call next, complete, skip, no-show, walk-in and counter status changes |
 
 GitHub Actions runs these tests and builds the client on every push and pull request.
 
