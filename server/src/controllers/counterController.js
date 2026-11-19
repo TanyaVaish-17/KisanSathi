@@ -209,7 +209,7 @@ export const callNextToken = asyncHandler(async (req, res) => {
   const serving = await Token.findOneAndUpdate(
     { _id: candidate._id, status: "waiting" },
     { $set: { status: "serving", calledAt: now, servingStartedAt: now } },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!serving) {
@@ -262,13 +262,13 @@ const finishServingToken = async (req, res, status) => {
     result = await Token.findOneAndUpdate(
       { _id: token._id, status: "serving" },
       { $set: fields },
-      { new: true }
+      { returnDocument: "after" }
     );
   } else if (outcome === "no_show") {
     result = await Token.findOneAndUpdate(
       { _id: token._id, status: "serving" },
       { $set: { status: "no_show", skippedAt: new Date() } },
-      { new: true }
+      { returnDocument: "after" }
     );
   } else {
     const { waiting } = await getCounterQueue(counter._id, token.dateKey);
@@ -285,7 +285,7 @@ const finishServingToken = async (req, res, status) => {
         $unset: { calledAt: "", servingStartedAt: "" },
         $inc: { skipCount: 1 },
       },
-      { new: true }
+      { returnDocument: "after" }
     );
   }
 
