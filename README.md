@@ -41,52 +41,77 @@ Farmers often spend hours standing in line at mandis and procurement centers wit
 
 ## 📸 Screenshots
 
+<div align="center">
+  <img src="screenshots/01-landing-page.png" alt="Landing page" width="85%"><br>
+  <b>🏠 Landing page</b><br>
+  <sub>What KisanSathi does and how it works</sub>
+</div>
+
+<br>
+
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="screenshots/01-landing-page.png" width="100%" alt="Landing Page">
-      <b>🏠 Landing Page</b><br>
-      <sub>Project introduction and features</sub>
+      <img src="screenshots/02-token-booking.png" alt="Token booking" width="100%"><br>
+      <b>🎟️ Book a token</b><br>
+      <sub>Choose a center and a service</sub>
     </td>
     <td width="50%" align="center">
-      <img src="screenshots/02-token-booking.png" width="100%" alt="Token Booking">
-      <b>🎟️ Token Booking</b><br>
-      <sub>Token selection and live ticket confirmation</sub>
+      <img src="screenshots/03-token-confirmation.png" alt="Token confirmation" width="100%"><br>
+      <b>✅ Token confirmation</b><br>
+      <sub>Your token number, queue position and estimated wait</sub>
     </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <img src="screenshots/03-queue-board.png" width="100%" alt="Public Queue Board">
-      <b>📺 Live Queue Board</b><br>
-      <sub>Now serving and waiting queue</sub>
-    </td>
-    <td width="50%" align="center">
-      <img src="screenshots/04-farmer-dashboard.png" width="100%" alt="Farmer Dashboard">
-      <b>🧑‍🌾 Farmer Dashboard</b><br>
-      <sub>Active tokens and recent token history</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <img src="screenshots/05-operator-console.png" width="100%" alt="Operator Console">
-      <b>🧑‍💼 Operator Console</b><br>
-      <sub>Queue operations and walk-in registration</sub>
-    </td>
-    <td width="50%" align="center">
-      <img src="screenshots/06-admin-dashboard.png" width="100%" alt="Admin Dashboard">
-      <b>🛡️ Admin Dashboard</b><br>
-      <sub>System overview and administrative controls</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" align="center">
-      <img src="screenshots/07-admin-analytics.png" width="100%" alt="Admin Analytics">
-      <b>📊 Admin Analytics</b><br>
-      <sub>Token statistics, waiting times and charts</sub>
-    </td>
-    <td width="50%"></td>
   </tr>
 </table>
+
+<br>
+
+<div align="center">
+  <img src="screenshots/03-queue-board.png" alt="Live queue board" width="85%"><br>
+  <b>📺 Live queue board</b><br>
+  <sub>Public board showing who is being served now, updating in real time</sub>
+</div>
+
+<br>
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="screenshots/04a-farmer-dashboard-top.png" alt="Farmer dashboard" width="100%"><br>
+      <b>🧑‍🌾 Farmer dashboard</b><br>
+      <sub>Live position, estimated wait and arrival advice</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="screenshots/04b-farmer-dashboard-history.png" alt="Farmer token history" width="100%"><br>
+      <b>🕘 Token history</b><br>
+      <sub>Past visits with their status</sub>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<div align="center">
+  <img src="screenshots/05-operator-console.png" alt="Operator console" width="85%"><br>
+  <b>🧑‍💼 Operator console</b><br>
+  <sub>Call next, complete, skip, no-show and the walk-in desk</sub>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="screenshots/06-admin-dashboard.png" alt="Admin dashboard" width="85%"><br>
+  <b>🛡️ Admin dashboard</b><br>
+  <sub>Overview of centers, counters and queues</sub>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="screenshots/07-admin-analytics.png" alt="Admin analytics" width="85%"><br>
+  <b>📊 Admin analytics</b><br>
+  <sub>Waiting times, peak hours and counter utilization, calculated from real token records</sub>
+</div>
 
 ---
 
