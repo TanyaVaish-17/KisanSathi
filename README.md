@@ -8,6 +8,8 @@
 
 Book a virtual token · Track your place in line live · Arrive only when your turn is near
 
+**[🌐 Live demo](https://kisan-sarthi-beryl.vercel.app)**
+
 <br>
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -519,6 +521,8 @@ npm test
 | `tests/auth.test.js` | Register, login, JWT checks and role based access |
 | `tests/tokens.test.js` | Booking, counter selection, cancelling and stale token expiry |
 | `tests/operator.test.js` | Operator console: call next, complete, skip, no-show, walk-in and counter status changes |
+| `tests/notifications.test.js` | Notifications: created on booking, mark one or all as read, and users can only mark their own |
+| `tests/safeDefaults.test.js` | Stack traces hidden outside development, and the default 7 day login token expiry |
 
 GitHub Actions runs these tests and builds the client on every push and pull request.
 
@@ -561,7 +565,7 @@ Tanya Vaish, Teena Yadav, Shashwat Mishra, Saumya Tiwari
 - 📱 SMS and WhatsApp notifications for farmers without smartphones
 - 🌐 More languages beyond English and Hindi
 - 🗺️ Maps and distance-based center recommendations
-- 🧪 Automated tests and a deployment pipeline
+- 🧪 Frontend tests, and automatic deployment after the tests pass
 - 📦 Mobile app packaging
 
 ---
