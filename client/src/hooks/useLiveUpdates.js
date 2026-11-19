@@ -13,7 +13,9 @@ export default function useLiveUpdates({ events, centerId, onEvent }) {
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
-    const socket = io({ auth: token ? { token } : {} });
+    const socket = io(import.meta.env.VITE_SOCKET_URL || undefined, {
+      auth: token ? { token } : {},
+    });
 
     socket.on("connect", () => {
       if (centerId) socket.emit("center:join", centerId);
