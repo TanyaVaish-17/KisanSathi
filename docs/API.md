@@ -208,7 +208,7 @@ Walk-in body:
 { "status": "paused" }
 ```
 
-Allowed values are `active`, `paused` and `inactive`. Operators can only pause or resume. When a counter stops being active, its waiting tokens move to another active counter for the same service, and the response has a `transfer` summary.
+Allowed values are `active`, `paused` and `inactive`. Operators can only pause or resume their own counter. A paused counter keeps its queue and cannot call tokens until it is resumed. When an admin makes a counter inactive, its waiting tokens move to another active counter for the same service, and the response has a `transfer` summary like `{ "moved": 2, "remaining": 0 }`.
 
 ---
 
