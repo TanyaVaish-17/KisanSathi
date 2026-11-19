@@ -257,7 +257,7 @@ Open `server/.env` and fill in the values:
 
 | Variable | Description |
 | --- | --- |
-| `NODE_ENV` | `development` |
+| `NODE_ENV` | `development` locally, to see error stack traces. Leave it unset or set `production` when deploying |
 | `PORT` | API port, default `5000` |
 | `MONGO_URI` | Your connection string, ending with the database name `kisansathi`. For Atlas: `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/kisansathi?retryWrites=true&w=majority` |
 | `CLIENT_URL` | Frontend address, default `http://localhost:5173` |
